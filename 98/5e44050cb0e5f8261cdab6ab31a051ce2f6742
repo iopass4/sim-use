@@ -1,0 +1,38 @@
+README.md
+  s_29a25344a59371::t_4eb7a47e4eeaf6 127-137,159
+skills/sim-use/SKILL.md
+  s_29a25344a59371::t_c684d8bf819c08 20
+AGENTS.md
+  s_29a25344a59371::t_7586c3aa52b789 106-109,130
+docs/linux.md
+  s_49b7ec41a998cd::t_ab8ae9a1960d91 1-95
+CHANGELOG.md
+  s_29a25344a59371::t_c36c538a76e7e8 12-14
+scripts/install-linux.sh
+  s_29a25344a59371::t_ec8c29fbad7fa5 1-77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "985e44050cb0e5f8261cdab6ab31a051ce2f6742",
+  "prompts": {},
+  "logical_commit_id": "85d80c2b9b2cd3993c1828cee6dcb1b7c88c90c8",
+  "sessions": {
+    "s_29a25344a59371": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb9d2c6b-bcce-4760-b6af-c8a3b35bf529",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    },
+    "s_49b7ec41a998cd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "65b8442b-a2d6-43c9-a00b-d77539685cce",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
