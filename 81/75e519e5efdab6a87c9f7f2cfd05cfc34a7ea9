@@ -1,0 +1,28 @@
+CHANGELOG.md
+  s_49b7ec41a998cd::t_a35e4b69e3fcdb 13
+Sources/AndroidBackend/Bridge/BridgeClient.swift
+  s_49b7ec41a998cd::t_c06960a5942eea 337-341,345-347,364-365
+Sources/AndroidBackend/Bridge/BridgeConnection.swift
+  s_49b7ec41a998cd::t_d82cea3b3c040e 44-49,54-57
+Tests/AndroidBackendTests/BridgeConnectionScopingTests.swift
+  s_49b7ec41a998cd::t_6ac7fe7f0b6bf7 28,135-185,206
+docs/linux.md
+  s_49b7ec41a998cd::t_5e4f66b493186c 80-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8175e519e5efdab6a87c9f7f2cfd05cfc34a7ea9",
+  "prompts": {},
+  "logical_commit_id": "8175e519e5efdab6a87c9f7f2cfd05cfc34a7ea9",
+  "sessions": {
+    "s_49b7ec41a998cd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "65b8442b-a2d6-43c9-a00b-d77539685cce",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
