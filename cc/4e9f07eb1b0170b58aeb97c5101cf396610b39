@@ -1,37 +1,54 @@
 Package.swift
   s_29a25344a59371::t_596a62c4a0c951 4,6-10,12-22,27-29,50-57,63,67,69
+  s_29a25344a59371::t_c643da063e8a4b 4,6-10,12-22,27-29,50-57,63,67,69
 Sources/AndroidBackend/Bridge/BridgeClient.swift
   s_29a25344a59371::t_86208f718df1ad 3-7,357-383,392
+  s_29a25344a59371::t_b2f9b6b7aadbd0 3-7,357-383,392
 Sources/AndroidBackend/Bridge/BridgeClientRegistry.swift
   s_29a25344a59371::t_420697f59edf50 3-7
+  s_29a25344a59371::t_77bae507cfbdf3 3-7
 Sources/AndroidBackend/Bridge/BridgeEnvelope.swift
   s_29a25344a59371::t_f32b1c77a4a62e 3-7
+  s_29a25344a59371::t_399e38294e78a6 3-7
 Sources/AndroidBackend/Verbs/AndroidCommand.swift
   s_29a25344a59371::t_d324b6b37c9d14 16-22,39-46
+  s_29a25344a59371::t_ed724b277d9e73 16-22,39-46
 Sources/AndroidBackend/Verbs/AndroidDescribeUICommand.swift
   s_29a25344a59371::t_c66bbd1b46b966 11-12
+  s_29a25344a59371::t_ff857d83a4655e 11-12
 Sources/AndroidBackend/Verbs/AndroidDeviceController.swift
   s_29a25344a59371::t_30121e43577067 3-7
+  s_29a25344a59371::t_ff69d940e9c919 3-7
 Sources/SimUseCore/Daemon/DaemonClient.swift
   s_29a25344a59371::t_a16940e696e990 2,4-6
+  s_29a25344a59371::t_d2c7867437e7c7 2,4-6
 Sources/SimUseCore/Daemon/DaemonDispatch.swift
   s_29a25344a59371::t_94e3a7e623fd58 3,5-7
+  s_29a25344a59371::t_5f56332e36edff 3,5-7
 Sources/SimUseCore/Daemon/DaemonServer.swift
   s_29a25344a59371::t_9f2f5f93d4ec54 2,4-6
+  s_29a25344a59371::t_57d864950acc67 2,4-6
 Sources/SimUseCore/Daemon/DaemonSocket.swift
   s_29a25344a59371::t_b8ab645556ddbf 2,4-6
+  s_29a25344a59371::t_fef8032c3ff924 2,4-6
 Sources/SimUseCore/DaemonPaths.swift
   s_29a25344a59371::t_ec2a5ed4806044 2,4-6
+  s_29a25344a59371::t_f072bdd17cb2ea 2,4-6
 Sources/SimUseCore/LinuxCompat.swift
   s_29a25344a59371::t_aa50bfa82b774d 1-93
+  s_29a25344a59371::t_62cc4fa9bedf25 1-93
 Sources/SimUseCore/ProcessControl.swift
   s_29a25344a59371::t_33b892b9b8fece 3,5
+  s_29a25344a59371::t_cee43048068af5 3,5
 Sources/SimUseCore/Types/SimUseExecutableCommand.swift
   s_29a25344a59371::t_d247bb404ab53d 3,5-7
+  s_29a25344a59371::t_4d476daabaabda 3,5-7
 Sources/SimUseLinux/SimUseLinux.swift
   s_29a25344a59371::t_bc1bd4bfa04f3f 1-73
+  s_29a25344a59371::t_3a0836acd44309 1-73
 scripts/install-linux.sh
   s_29a25344a59371::t_ec8c29fbad7fa5 1-81
+  s_29a25344a59371::t_51117aa7948dc0 1-81
 ---
 {
   "schema_version": "authorship/3.0.0",
