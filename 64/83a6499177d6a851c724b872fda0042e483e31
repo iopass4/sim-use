@@ -1,0 +1,58 @@
+AGENTS.md
+  s_29a25344a59371::t_b4a9dbba3dd55e 130
+CHANGELOG.md
+  s_29a25344a59371::t_efa32e7087ec37 13
+Sources/AndroidBackend/Adb/Adb.swift
+  s_29a25344a59371::t_a4c44d90b69228 116-140
+Sources/AndroidBackend/Bridge/BridgeClient.swift
+  s_29a25344a59371::t_5ef21f131301c6 60-63,66-68,78-80,84-85,101-110,113,323,325,332-347,357-361,389-390,392,433
+Sources/AndroidBackend/Bridge/BridgeConnection.swift
+  s_ed1bfd6266ad68::t_462de674e60bff 1-53
+Sources/AndroidBackend/Bridge/BridgeSession.swift
+  s_29a25344a59371::t_d9262d661d0add 10-14,22-24,27,31
+Sources/SimUse/main.swift
+  s_29a25344a59371::t_21073204a25fac 49-54
+Sources/SimUseCore/Daemon/DaemonClient.swift
+  s_29a25344a59371::t_fb4b9c618e8e3c 48-51,56-60,234-237,239-242,245-247,249-250,254,265,271-277,289-308
+Sources/SimUseCore/Daemon/DaemonDispatch.swift
+  s_29a25344a59371::t_974eddcfcea6ac 42,44,49,264-265
+Sources/SimUseCore/Daemon/DaemonProtocol.swift
+  s_29a25344a59371::t_51585270a0e939 163-166,168,174
+Sources/SimUseCore/Daemon/DaemonServer.swift
+  s_29a25344a59371::t_e730d5c7548f08 33,56-57,60-63,208-209
+Sources/SimUseLinux/SimUseLinux.swift
+  s_29a25344a59371::t_176eb0b4435605 19-24
+Tests/AndroidBackendTests/AdbParserTests.swift
+  s_29a25344a59371::t_371f79ee926652 75-95
+Tests/SimUseCoreTests/DaemonConnectionGateTests.swift
+  s_29a25344a59371::t_10d43c5ca08cf7 1-129
+docs/linux.md
+  s_29a25344a59371::t_b02bed5d54fdcf 75-81
+Tests/AndroidBackendTests/BridgeConnectionScopingTests.swift
+  s_29a25344a59371::t_882f4f44b69a32 1-252
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "6483a6499177d6a851c724b872fda0042e483e31",
+  "prompts": {},
+  "logical_commit_id": "9900c4a19eefd93ebe6a15ed0b70f0c424cfe762",
+  "sessions": {
+    "s_29a25344a59371": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb9d2c6b-bcce-4760-b6af-c8a3b35bf529",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    },
+    "s_ed1bfd6266ad68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "03f5278a-1973-4857-9359-64bf1c1d5104",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
