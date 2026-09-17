@@ -1,8 +1,8 @@
+Tests/AndroidBackendTests/BridgeHostTests.swift
+  s_29a25344a59371::t_865754004e9687 1-62
 Sources/AndroidBackend/Bridge/BridgeClient.swift
   s_29a25344a59371::t_86208f718df1ad 357-383
   s_29a25344a59371::t_a0d32183849533 384-389,398
-Tests/AndroidBackendTests/BridgeHostTests.swift
-  s_29a25344a59371::t_865754004e9687 1-62
 ---
 {
   "schema_version": "authorship/3.0.0",
