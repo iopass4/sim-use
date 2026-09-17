@@ -1,11 +1,11 @@
 Sources/AndroidBackend/Verbs/AndroidCommand.swift
   s_29a25344a59371::t_d324b6b37c9d14 35-39
   s_29a25344a59371::t_3be2bc03d8d72f 31,40-45
+Package.swift
+  s_29a25344a59371::t_bdeff5ca612b44 64-70,73-149,360
 Sources/SimUseLinux/SimUseLinux.swift
   s_29a25344a59371::t_bc1bd4bfa04f3f 1-49
   s_29a25344a59371::t_c3c4176269e0e5 50-81
-Package.swift
-  s_29a25344a59371::t_bdeff5ca612b44 64-70,73-149,360
 ---
 {
   "schema_version": "authorship/3.0.0",
