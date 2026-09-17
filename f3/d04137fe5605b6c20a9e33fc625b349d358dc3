@@ -1,0 +1,23 @@
+Tests/AndroidBackendTests/BridgeHostTests.swift
+  s_29a25344a59371::t_865754004e9687 1-62
+Sources/AndroidBackend/Bridge/BridgeClient.swift
+  s_29a25344a59371::t_86208f718df1ad 357-383
+  s_29a25344a59371::t_a0d32183849533 384-389,398
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f3d04137fe5605b6c20a9e33fc625b349d358dc3",
+  "prompts": {},
+  "logical_commit_id": "4b5f1d484de6b6d8277303ce77c706aa3b6a4c53",
+  "sessions": {
+    "s_29a25344a59371": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb9d2c6b-bcce-4760-b6af-c8a3b35bf529",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
