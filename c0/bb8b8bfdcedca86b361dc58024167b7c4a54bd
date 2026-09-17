@@ -1,0 +1,22 @@
+Sources/SimUseCore/OutlineCache.swift
+  s_29a25344a59371::t_2f53f1e488d809 162,164-174
+Tests/SimUseCoreTests/OutlineCacheRoundTripTests.swift
+  s_29a25344a59371::t_a6459bbdf93f40 44-77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c0bb8b8bfdcedca86b361dc58024167b7c4a54bd",
+  "prompts": {},
+  "logical_commit_id": "5c0ca01890337e88ba43398c8e02942fee93073a",
+  "sessions": {
+    "s_29a25344a59371": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb9d2c6b-bcce-4760-b6af-c8a3b35bf529",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
