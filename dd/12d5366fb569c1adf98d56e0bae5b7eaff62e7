@@ -1,0 +1,20 @@
+Sources/AndroidBackend/Adb/Adb.swift
+  s_29a25344a59371::t_b6bf5c5b364518 196-199,202-203
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "dd12d5366fb569c1adf98d56e0bae5b7eaff62e7",
+  "prompts": {},
+  "logical_commit_id": "351513214500102ee9070a887715c0ea923ab650",
+  "sessions": {
+    "s_29a25344a59371": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb9d2c6b-bcce-4760-b6af-c8a3b35bf529",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
