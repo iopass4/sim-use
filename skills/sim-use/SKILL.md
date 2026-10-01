@@ -17,6 +17,8 @@ This verifies sim-use is installed and compatible with the skill, the device is 
 2. `sim-use devices` — confirm the target device is listed and booted/connected.
 3. `sim-use ui --device <UDID>` — confirm you can read the screen.
 
+A `WARN  UI content` line still passes preflight: the read works, but the outline can miss app controls. See the *Pitfalls* index.
+
 `--device` is optional when only one simulator is booted or one daemon is running. For Android, run `sim-use android init --device <serial>` once to install the bridge APK. Attached physical iPhones/iPads appear in `sim-use devices` with kind `physical` and route through the top-level verbs too — but only `ui`, selector-based `tap` and `screenshot`; every other verb rejects on that target. See *Physical iOS devices* below before driving one.
 
 ## 1. The observe-act loop
@@ -135,6 +137,7 @@ Quick symptom index — see `references/pitfalls.md` for detailed recipes.
 | Outline shows `U+FFFC` in label | iOS icon placeholder character | Match with `--label-regex` excluding the prefix |
 | `[i] … covers ~N% of the screen` warning (text output, or `--json` top-level `advisory` key) | The selector resolved to a near-full-screen wrapper (common on Flutter/canvas UIs) and the tap hit its center, likely missing the intended control | Re-run `ui` and target the control via `@N`/`#<id>`, or pass explicit `-x/-y`/`--point` |
 | `[i] Screen orientation could not be confirmed…` / `…coordinates may be stale…` advisory | Device/app is rotated (the `App:` header shows a tag like `(landscape-right)`) and orientation self-calibration couldn't verify the mapping, or the `@N` snapshot predates a rotation | Re-run `ui` and tap again; selectors handle rotation automatically once calibration succeeds. Explicit `-x/-y`/`--point` is device-native portrait space by default — on `tap`/`swipe`/`touch`, pass `--coordinate-space ui` to use outline (visual-space) coordinates on a rotated device |
+| Outline is empty or misses visible app controls, or `[i] … recovered from other processes …` advisory (`--json`: `advisory.kind: remote_content_recovery`) | The app exposed an empty accessibility tree. Normal for a system picker. Otherwise, on an iOS simulator, a likely cause is that app accessibility was off when the app launched | Compare the outline with the screen. If controls are missing, see [Missing app controls](references/pitfalls.md#missing-app-controls-in-the-outline) |
 
 ## 3. Crash awareness
 
