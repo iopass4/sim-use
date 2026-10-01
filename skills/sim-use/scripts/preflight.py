@@ -172,14 +172,15 @@ def check_ui_responds(ctx: Ctx) -> bool:
     data = envelope.get("data")
     if not isinstance(data, dict):
         data = {}
-    is_physical = data.get("kind") == "physical"
-    ctx.ui_is_ios_simulator = data.get("platform") == "ios" and not is_physical
+    is_ios = data.get("platform") == "ios"
+    is_physical_ios = is_ios and data.get("kind") == "physical"
+    ctx.ui_is_ios_simulator = is_ios and not is_physical_ios
     advisory = envelope.get("advisory")
     if isinstance(advisory, dict) and advisory.get("kind") == "remote_content_recovery":
         ctx.content_warning = "remote_content_recovery"
     # Physical iOS reads always carry an empty `entries` list; the outline
-    # text is their payload, so only simulators and Android are checked.
-    elif not is_physical and data.get("entries") == []:
+    # text is their payload, so they are the only reads not checked.
+    elif not is_physical_ios and data.get("entries") == []:
         ctx.content_warning = "empty_outline"
     return True
 

@@ -90,6 +90,7 @@ struct PreflightScriptTests {
     @Test("empty outline warns without failing or restarting the daemon", arguments: [
         (response: #"{"ok":true,"data":{"platform":"ios","entries":[],"outline":"App: Test"}}"#, expectsAccessibilityHint: true),
         (response: #"{"ok":true,"data":{"platform":"android","entries":[],"outline":"App: Test"}}"#, expectsAccessibilityHint: false),
+        (response: #"{"ok":true,"data":{"platform":"android","kind":"physical","entries":[],"outline":"App: Test"}}"#, expectsAccessibilityHint: false),
     ])
     func emptyOutlineWarns(_ testCase: (response: String, expectsAccessibilityHint: Bool)) async throws {
         let fixture = try makeFakeSimUse(versionStamp: "0.14.0", uiResponse: testCase.response)
