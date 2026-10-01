@@ -77,6 +77,7 @@ struct PreflightScriptTests {
         #expect(result.output.contains("If visible app controls are missing"))
         #expect(result.output.contains("ApplicationAccessibilityEnabled"))
         #expect(result.output.contains("relaunch"))
+        #expect(result.output.contains("Missing app controls in the outline"))
         #expect(result.output.contains("Preflight passed with a content warning"))
         #expect(!result.output.contains("All checks passed"))
         #expect(!result.output.contains("FAIL"))
@@ -86,14 +87,36 @@ struct PreflightScriptTests {
         #expect(log == "--version\ndevices --json\nui --json --device target-device\n")
     }
 
-    @Test("successful reads without the recovery advisory keep the existing result", arguments: [
+    @Test("empty outline warns without failing or restarting the daemon", arguments: [
+        (response: #"{"ok":true,"data":{"platform":"ios","entries":[],"outline":"App: Test"}}"#, expectsAccessibilityHint: true),
+        (response: #"{"ok":true,"data":{"platform":"android","entries":[],"outline":"App: Test"}}"#, expectsAccessibilityHint: false),
+    ])
+    func emptyOutlineWarns(_ testCase: (response: String, expectsAccessibilityHint: Bool)) async throws {
+        let fixture = try makeFakeSimUse(versionStamp: "0.14.0", uiResponse: testCase.response)
+        defer { try? FileManager.default.removeItem(at: fixture.tempRoot) }
+
+        let result = try await runPreflight(fakeSimUse: fixture.executable)
+
+        #expect(result.exitCode == 0)
+        #expect(result.output.contains("PASS  sim-use ui returns a valid response"))
+        #expect(result.output.contains("WARN  UI content: empty outline"))
+        #expect(result.output.contains("Missing app controls in the outline"))
+        #expect(result.output.contains("ApplicationAccessibilityEnabled") == testCase.expectsAccessibilityHint)
+        #expect(result.output.contains("Preflight passed with a content warning"))
+        #expect(!result.output.contains("All checks passed"))
+
+        let log = try String(contentsOf: fixture.logFile, encoding: .utf8)
+        #expect(log == "--version\ndevices --json\nui --json --device target-device\n")
+    }
+
+    @Test("successful reads without a content problem keep the existing result", arguments: [
         #"{"ok":true,"data":{"platform":"ios","entries":[{"role":"StaticText","label":"12:00"}]}}"#,
         #"{"ok":true,"advisory":null,"data":{"outline":"App: Test"}}"#,
-        #"{"ok":true,"advisory":{"kind":"orientation_uncertain"},"data":{"outline":"App: Test"}}"#,
-        #"{"ok":true,"data":{"platform":"android","entries":[]}}"#,
-        #"{"ok":true,"data":{"kind":"physical","outline":"Button: Close"}}"#,
+        #"{"ok":true,"advisory":{"kind":"orientation_calibration_fallback"},"data":{"platform":"ios","entries":[{"role":"Button","label":"OK"}]}}"#,
+        #"{"ok":true,"advisory":{"kind":"full_screen_tap_target"},"data":{"platform":"android","entries":[{"role":"Button","label":"OK"}]}}"#,
+        #"{"ok":true,"data":{"platform":"ios","kind":"physical","entries":[],"lists":[],"outline":"Button: Close"}}"#,
     ])
-    func successfulReadWithoutRecoveryDoesNotWarn(uiResponse: String) async throws {
+    func successfulReadWithoutContentProblemDoesNotWarn(uiResponse: String) async throws {
         let fixture = try makeFakeSimUse(versionStamp: "0.14.0", uiResponse: uiResponse)
         defer { try? FileManager.default.removeItem(at: fixture.tempRoot) }
 

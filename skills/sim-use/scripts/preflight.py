@@ -43,7 +43,8 @@ class Ctx:
     device: Optional[str] = None
     sim_use_bin: str = "sim-use"
     platform: Optional[str] = None  # "ios" or "android", detected
-    remote_content_recovered: bool = False
+    content_warning: Optional[str] = None  # "remote_content_recovery" or "empty_outline"
+    ui_is_ios_simulator: bool = False
     errors: list = field(default_factory=list)
 
     def run_sim_use(self, *args: str, check: bool = False) -> subprocess.CompletedProcess:
@@ -164,15 +165,38 @@ def autofix_boot_simulator(ctx: Ctx) -> bool:
 
 
 def check_ui_responds(ctx: Ctx) -> bool:
-    ctx.remote_content_recovered = False
+    ctx.content_warning = None
     envelope = ctx.run_sim_use_json("ui")
     if envelope is None or envelope.get("ok") is not True:
         return False
+    data = envelope.get("data")
+    if not isinstance(data, dict):
+        data = {}
+    is_physical = data.get("kind") == "physical"
+    ctx.ui_is_ios_simulator = data.get("platform") == "ios" and not is_physical
     advisory = envelope.get("advisory")
-    ctx.remote_content_recovered = (
-        isinstance(advisory, dict) and advisory.get("kind") == "remote_content_recovery"
-    )
+    if isinstance(advisory, dict) and advisory.get("kind") == "remote_content_recovery":
+        ctx.content_warning = "remote_content_recovery"
+    # Physical iOS reads always carry an empty `entries` list; the outline
+    # text is their payload, so only simulators and Android are checked.
+    elif not is_physical and data.get("entries") == []:
+        ctx.content_warning = "empty_outline"
     return True
+
+
+def print_content_warning(ctx: Ctx) -> None:
+    if ctx.content_warning == "remote_content_recovery":
+        print("  WARN  UI content: remote_content_recovery")
+        print("        The app tree was empty; content was recovered from other processes.")
+        print("        This can be normal for a system picker.")
+    else:
+        print("  WARN  UI content: empty outline")
+        print("        The read succeeded, but the outline contains no elements.")
+    print("        Compare the outline with the visible screen.")
+    if ctx.ui_is_ios_simulator:
+        print("        If visible app controls are missing, check ApplicationAccessibilityEnabled")
+        print("        in com.apple.Accessibility before an app relaunch.")
+    print("        See 'Missing app controls in the outline' in references/pitfalls.md.")
 
 
 def autofix_daemon_restart(ctx: Ctx) -> bool:
@@ -237,18 +261,14 @@ def main():
 
     print("sim-use preflight\n")
     passed = run_checks(shared_checks(), ctx)
-    if ctx.remote_content_recovered:
-        print("  WARN  UI content: remote_content_recovery")
-        print("        The app tree was empty; content was recovered from other processes.")
-        print("        This can be normal for a system picker. Compare the outline with the visible screen.")
-        print("        If visible app controls are missing on an iOS simulator, check")
-        print("        ApplicationAccessibilityEnabled in com.apple.Accessibility before an app relaunch.")
+    if passed and ctx.content_warning:
+        print_content_warning(ctx)
     print()
 
     if passed:
         device_label = ctx.device or "(auto-resolved)"
         platform_label = ctx.platform or "unknown"
-        summary = "Preflight passed with a content warning" if ctx.remote_content_recovered else "All checks passed"
+        summary = "Preflight passed with a content warning" if ctx.content_warning else "All checks passed"
         print(f"{summary}. Device: {device_label} ({platform_label})")
         sys.exit(0)
     else:
