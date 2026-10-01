@@ -27,6 +27,7 @@ sim-use tap --label-contains "Order"    # substring match
 sim-use tap --label-regex '^Chat.*\d+$' # ICU regex
 sim-use tap -x 100 -y 200              # absolute coordinates (last resort)
 sim-use tap --point 100,200             # same, pair form
+sim-use tap -x 100 -y 200 --coordinate-space ui   # outline (visual-space) coords on a rotated device
 ```
 
 ## Disambiguating with --frame
@@ -125,8 +126,8 @@ sim-use screenshot --output shot.png
 sim-use record-video --output recording.mp4             # H.264, 30 fps default; Ctrl+C to stop
 sim-use record-video --output smooth.mp4 --fps 60       # iOS: constant rate up to 60 fps (Android ignores --fps, native rate)
 sim-use record-video --output demo.gif                  # animated GIF (inferred from extension, or --format gif); 10 fps + 0.5 scale defaults; add --gif-markers for START/END boundary cards; transcoded after Ctrl+C
-sim-use stream-video --fps 10 --format mjpeg > out.mjpeg  # live JPEG stream (both platforms)
-sim-use stream-video --format h264 | ffplay -f h264 -      # Android only: native H.264 passthrough (VFR)
+sim-use stream-video --format h264 | ffplay -f mpegts -probesize 32768 -i -  # live H.264 preview in MPEG-TS (both platforms); iOS constant --fps (default 30), Android native VFR (a still screen sends no new frames)
+sim-use stream-video --fps 10 --format mjpeg > out.mjpeg  # screenshot-loop JPEG stream; DEPRECATED on iOS (use h264), kept on Android for devices without screenrecord
 ```
 
 ### Stopping a backgrounded recording
