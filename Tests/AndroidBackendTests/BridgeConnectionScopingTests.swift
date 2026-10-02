@@ -273,6 +273,23 @@ final class BridgeConnectionScopingTests: XCTestCase {
         )
     }
 
+    /// Nothing answers on the bridge port, even after reconnecting:
+    /// both attempts must remove their forward for this serial, since
+    /// no persisted session will be available to clean it up later.
+    func testFailedReconnectRemovesEveryCreatedForward() throws {
+        RecordingBridgeProtocol.reset(listenerAvailable: false)
+        let client = try makeClient(environment: serverA)
+
+        XCTAssertThrowsError(try client.ping())
+
+        let calls = adbCalls()
+        let creations = calls.filter { $0 == "-s \(serial) forward tcp:0 tcp:8080" }
+        let removals = calls.filter { $0 == "-s \(serial) forward --remove tcp:18081" }
+        XCTAssertEqual(creations.count, 2, "initial attempt and reconnect must each open a forward: \(calls)")
+        XCTAssertEqual(removals.count, creations.count, "every created forward must be removed for this serial: \(calls)")
+        XCTAssertNil(BridgeSessionStore.read(udid: serial, home: home))
+    }
+
     // MARK: - Fixtures
 
     private func persistSession(token: String, localPort: Int, environment: [String: String]) {
@@ -346,8 +363,8 @@ final class BridgeConnectionScopingTests: XCTestCase {
     }
 }
 
-/// Answers every bridge request successfully — whatever host or port it
-/// was addressed to — and records where it went.
+/// Answers bridge requests successfully unless no listener is available,
+/// and records where they went.
 final class RecordingBridgeProtocol: URLProtocol {
     struct Recorded: CustomStringConvertible {
         let host: String?
@@ -359,9 +376,13 @@ final class RecordingBridgeProtocol: URLProtocol {
 
     private static let lock = NSLock()
     nonisolated(unsafe) private static var recorded: [Recorded] = []
+    nonisolated(unsafe) private static var listenerAvailable = true
 
-    static func reset() {
-        lock.lock(); recorded = []; lock.unlock()
+    static func reset(listenerAvailable: Bool = true) {
+        lock.lock()
+        recorded = []
+        Self.listenerAvailable = listenerAvailable
+        lock.unlock()
     }
 
     static func requests() -> [Recorded] {
@@ -381,7 +402,13 @@ final class RecordingBridgeProtocol: URLProtocol {
             path: url?.path ?? "",
             authorization: request.value(forHTTPHeaderField: "Authorization")
         ))
+        let listenerAvailable = Self.listenerAvailable
         Self.lock.unlock()
+
+        guard listenerAvailable else {
+            client?.urlProtocol(self, didFailWithError: URLError(.cannotConnectToHost))
+            return
+        }
 
         let body = url?.path == "/ping"
             ? #"{"status":"success","result":"pong","protocol_version":2,"bridge_version":"test"}"#

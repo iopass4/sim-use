@@ -488,8 +488,12 @@ public final class BridgeClient: @unchecked Sendable {
             // reachable but nothing is answering on the bridge port. One
             // cheap probe disambiguates the dominant cause — a device that
             // was never `sim-use android init`-ed — from a genuine drop on
-            // an already-bootstrapped bridge.
-            throw connectionFailure(underlying: error)
+            // an already-bootstrapped bridge. Compute the error before
+            // dropping caches and removing the retry's forward, which
+            // would otherwise be stranded without a persisted session.
+            let failure = connectionFailure(underlying: error)
+            invalidate()
+            throw failure
         }
         guard let http = response as? HTTPURLResponse else {
             throw BridgeError.transport(underlying: "Non-HTTP response from bridge", serial: serial)
