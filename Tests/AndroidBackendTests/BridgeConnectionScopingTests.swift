@@ -49,6 +49,7 @@ final class BridgeConnectionScopingTests: XCTestCase {
         try makeClient(environment: serverB).pressKey(3)
 
         assertNothingSent(toPort: 18080, withToken: "token-A")
+        XCTAssertFalse(adbCalls().contains { $0.contains("forward --remove") })
         assertAllRequests(host: "192.0.2.20", port: 18081, authorizedWith: "token-B")
         XCTAssertTrue(adbCalls().contains { $0.contains("forward tcp:0 tcp:8080") }, "a new forward must be created")
         XCTAssertTrue(adbCalls().contains { $0.contains("content query") }, "the token must be fetched again")
@@ -104,6 +105,78 @@ final class BridgeConnectionScopingTests: XCTestCase {
         XCTAssertEqual(stored.localPort, 18081)
         XCTAssertEqual(stored.token, "token-B")
         XCTAssertEqual(stored.connection, BridgeConnection(environment: serverB).identity)
+        XCTAssertEqual(stored.adbServer, BridgeConnection(environment: serverB).adbServer)
+    }
+
+    func testHostOnlyChangeRemovesOldForwardBeforeReplacement() throws {
+        persistSession(token: "token-A", localPort: 18080, environment: serverA)
+        var changed = serverA
+        changed["SIM_USE_BRIDGE_HOST"] = "192.0.2.30"
+
+        try makeClient(environment: changed).pressKey(3)
+
+        let calls = adbCalls()
+        let removal = try XCTUnwrap(calls.firstIndex(of: "-s \(serial) forward --remove tcp:18080"))
+        let creation = try XCTUnwrap(calls.firstIndex { $0.contains("forward tcp:0") })
+        XCTAssertLessThan(removal, creation)
+        assertNothingSent(toPort: 18080, withToken: "token-A")
+        assertAllRequests(host: "192.0.2.30", port: 18081, authorizedWith: "token-B")
+    }
+
+    func testLegacyUnnormalisedIdentityWithoutServerIsRejectedWithoutRemoval() throws {
+        let session = BridgeSession(token: "token-A", localPort: 18080, remotePort: 8080,
+                                    connection: "adb=default host=127.0.0.1")
+        BridgeSessionStore.write(session, udid: serial, home: home)
+        XCTAssertNil(BridgeSessionStore.read(udid: serial, home: home)?.adbServer)
+
+        try makeClient(environment: [:]).pressKey(3)
+
+        assertNothingSent(toPort: 18080, withToken: "token-A")
+        XCTAssertFalse(adbCalls().contains { $0.contains("forward --remove") })
+    }
+
+    func testDefaultPortChangeReusesSession() throws {
+        persistSession(token: "token-A", localPort: 18080, environment: [:])
+        try "\(serial) tcp:18080 tcp:8080\n".write(to: forwardList, atomically: true, encoding: .utf8)
+
+        try makeClient(environment: ["ANDROID_ADB_SERVER_PORT": "5037"]).pressKey(3)
+
+        assertAllRequests(host: "127.0.0.1", port: 18080, authorizedWith: "token-A")
+        XCTAssertFalse(adbCalls().contains { $0.contains("forward --remove") || $0.contains("forward tcp:0") })
+    }
+
+    func testEquivalentDefaultDaemonIdentities() {
+        XCTAssertEqual(
+            BridgeConnection.daemonConnectionIdentity(udid: serial, environment: [:]),
+            BridgeConnection.daemonConnectionIdentity(udid: serial, environment: ["ANDROID_ADB_SERVER_PORT": "5037"])
+        )
+    }
+
+    func testAdbServerNormalisation() {
+        for spec in ["default", "tcp:5037", "tcp:localhost:5037", "tcp:127.0.0.1:5037", "tcp:[::1]:5037"] {
+            XCTAssertEqual(BridgeConnection.normalizeAdbServer(spec), "tcp:localhost:5037", spec)
+        }
+        for address in ["localhost", "127.0.0.1", "::1", "[::1]"] {
+            for port in [nil, "5037", ""] as [String?] {
+                var environment = ["ANDROID_ADB_SERVER_ADDRESS": address]
+                environment["ANDROID_ADB_SERVER_PORT"] = port
+                XCTAssertEqual(BridgeConnection(environment: environment).adbServer, "tcp:localhost:5037")
+            }
+        }
+        for (spec, expected) in [
+            ("tcp:5038", "tcp:localhost:5038"),
+            ("tcp:192.0.2.10:5037", "tcp:192.0.2.10:5037"),
+            ("tcp:ADB.EXAMPLE:5037", "tcp:adb.example:5037"),
+            ("tcp:[fd00::1]:5037", "tcp:[fd00::1]:5037"),
+            ("tcp:bad-port", "tcp:bad-port"),
+            ("tcp:localhost:nope", "tcp:localhost:nope"),
+            ("tcp:localhost:70000", "tcp:localhost:70000"),
+            ("localfilesystem:/tmp/adb.sock", "localfilesystem:/tmp/adb.sock"),
+        ] {
+            XCTAssertEqual(BridgeConnection.normalizeAdbServer(spec), expected)
+        }
+        XCTAssertEqual(BridgeConnection(environment: ["ANDROID_ADB_SERVER_ADDRESS": "192.0.2.10"]).adbServer,
+                       "tcp:192.0.2.10:5037")
     }
 
     // MARK: - Connection identity
@@ -207,7 +280,8 @@ final class BridgeConnectionScopingTests: XCTestCase {
             token: token,
             localPort: localPort,
             remotePort: BridgeClient.defaultRemotePort,
-            connection: BridgeConnection(environment: environment).identity
+            connection: BridgeConnection(environment: environment).identity,
+            adbServer: BridgeConnection(environment: environment).adbServer
         )
         BridgeSessionStore.write(session, udid: serial, home: home)
     }

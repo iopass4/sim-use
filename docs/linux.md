@@ -68,9 +68,11 @@ sim-use tap @5 --device <serial>
 
 `adb forward` opens its listening port on the machine that runs the **adb
 server**. When `ADB_SERVER_SOCKET` points at a remote server
-(`tcp:<host>:<port>`), sim-use therefore talks to the bridge on that host
-instead of `127.0.0.1`. Set `SIM_USE_BRIDGE_HOST` to override the host
-explicitly. This applies on macOS too.
+(`tcp:<host>:<port>`), or, with no `ADB_SERVER_SOCKET`, when
+`ANDROID_ADB_SERVER_ADDRESS` names a remote host (the same precedence adb
+uses), sim-use therefore talks to the bridge on that host instead of
+`127.0.0.1`. Set `SIM_USE_BRIDGE_HOST` to override the host explicitly. This
+applies on macOS too.
 
 The forwarded port and bridge token that sim-use caches for a device belong
 to the adb server that created them, so they are scoped to that connection
@@ -80,6 +82,15 @@ device's daemon and creates a fresh forward and token, and a cached forward is
 reused only while `adb forward --list` still shows it for the device. If
 `adb forward --list` itself fails, the command fails with that adb error and
 the cached session is kept, rather than opening a second forward.
+
+Equivalent spellings of the same server (no variables,
+`ANDROID_ADB_SERVER_PORT=5037`, `ADB_SERVER_SOCKET=tcp:localhost:5037`) count
+as one connection, so switching between them keeps the daemon and the
+forward. When only the bridge host changes, the old forward is removed from
+the adb server before a new one is opened. A forward created on a
+*different* adb server stays registered there, because sim-use is no longer
+talking to that server; `adb forward --list` against that server shows it,
+and `adb -s <serial> forward --remove tcp:<port>` clears it.
 
 The common case is WSL, which has no USB access: WSL's `adb` points at the
 Windows host's adb server so physical devices stay visible.

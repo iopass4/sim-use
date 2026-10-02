@@ -22,13 +22,16 @@ public struct BridgeSession: Codable, Equatable, Sendable {
     /// `BridgeConnection.identity` the forward and token were created
     /// under. Nil in caches written before sessions recorded it.
     public let connection: String?
+    /// Canonical adb server owning the forward; nil in older caches.
+    public let adbServer: String?
     public let writtenAt: Date
 
-    public init(token: String, localPort: Int, remotePort: Int, connection: String? = nil, writtenAt: Date = Date()) {
+    public init(token: String, localPort: Int, remotePort: Int, connection: String? = nil, adbServer: String? = nil, writtenAt: Date = Date()) {
         self.token = token
         self.localPort = localPort
         self.remotePort = remotePort
         self.connection = connection
+        self.adbServer = adbServer
         self.writtenAt = writtenAt
     }
 }

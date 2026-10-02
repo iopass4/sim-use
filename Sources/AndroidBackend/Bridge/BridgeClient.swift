@@ -105,12 +105,20 @@ public final class BridgeClient: @unchecked Sendable {
         // itself is still confirmed with `adb forward --list` before the
         // first request (see `currentLocalPort`), because a listener that
         // answers is not proof the forward is still ours; a stale token on
-        // a confirmed forward falls back to the 401 re-fetch.
-        if let cached = BridgeSessionStore.read(udid: serial, home: sessionHome),
-           cached.connection == connection.identity {
-            self.cachedAuthToken = cached.token
-            self.cachedLocalPort = cached.localPort
-            self.restoredPortUnconfirmed = true
+        // a confirmed forward falls back to the 401 re-fetch. When only
+        // the bridge host changed, the old forward is on this same adb
+        // server: remove it best effort and drop the cache. A forward on
+        // a different adb server is left alone because this process cannot
+        // address that server.
+        if let cached = BridgeSessionStore.read(udid: serial, home: sessionHome) {
+            if cached.connection == connection.identity {
+                self.cachedAuthToken = cached.token
+                self.cachedLocalPort = cached.localPort
+                self.restoredPortUnconfirmed = true
+            } else if cached.adbServer == connection.adbServer {
+                _ = try? adb.forwardRemove(serial: serial, localPort: cached.localPort)
+                BridgeSessionStore.invalidate(udid: serial, home: sessionHome)
+            }
         }
     }
 
@@ -391,39 +399,10 @@ public final class BridgeClient: @unchecked Sendable {
             token: token,
             localPort: port,
             remotePort: Self.defaultRemotePort,
-            connection: connection.identity
+            connection: connection.identity,
+            adbServer: connection.adbServer
         )
         BridgeSessionStore.write(session, udid: serial, home: sessionHome)
-    }
-
-    /// `adb forward tcp:0 tcp:8080` opens its local socket on the machine
-    /// running the **adb server**, which is only this machine when the
-    /// server is local. When `ADB_SERVER_SOCKET` points at a remote server
-    /// (`tcp:<host>:<port>` — e.g. WSL using the Windows host's adb so USB
-    /// devices stay visible), the forward listens over there and loopback
-    /// has nothing behind it, so the bridge host follows that server.
-    /// `SIM_USE_BRIDGE_HOST` overrides both. The result is ready to
-    /// interpolate into a URL authority: IPv6 hosts come back bracketed,
-    /// with any zone id's `%` escaped.
-    static func resolveBridgeHost(environment: [String: String]) -> String {
-        let loopback = "127.0.0.1"
-        let host: String
-        if let explicit = environment["SIM_USE_BRIDGE_HOST"], !explicit.isEmpty {
-            host = explicit
-        } else if let socket = environment["ADB_SERVER_SOCKET"], socket.hasPrefix("tcp:") {
-            // "tcp:<port>" is a local server; only "tcp:<host>:<port>" is remote.
-            let rest = socket.dropFirst("tcp:".count)
-            guard let separator = rest.lastIndex(of: ":") else { return loopback }
-            host = String(rest[..<separator])
-        } else {
-            return loopback
-        }
-        let bare = host.hasPrefix("[") && host.hasSuffix("]") ? String(host.dropFirst().dropLast()) : host
-        if bare.isEmpty || bare == "localhost" || bare == "127.0.0.1" || bare == "::1" {
-            return loopback
-        }
-        guard bare.contains(":") else { return bare }
-        return "[\(bare.replacingOccurrences(of: "%", with: "%25"))]"
     }
 
     private func buildRequest(
