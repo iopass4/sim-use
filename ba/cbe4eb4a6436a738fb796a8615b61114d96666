@@ -1,0 +1,48 @@
+CHANGELOG.md
+  s_96abe8cfdbcd94::t_89ec7a8c4465e4 12
+README.md
+  s_96abe8cfdbcd94::t_1970b9d5c487da 130
+Sources/AndroidBackend/Verbs/AndroidAppStateCommand.swift
+  s_96abe8cfdbcd94::t_3280918cbc1406 1-72
+Sources/AndroidBackend/Verbs/AndroidCommandDeviceValidation.swift
+  s_96abe8cfdbcd94::t_9a66298457b0a2 1-13
+Sources/AndroidBackend/Verbs/AndroidLongPressCommand.swift
+  s_96abe8cfdbcd94::t_a220230d835443 1-115
+Sources/SimUse/Commands/AppState.swift
+  s_96abe8cfdbcd94::t_e20847b104fdff 19,27,35,53-55,61-63,71,73,92,106-108,112,114
+Sources/SimUse/Commands/LongPress.swift
+  s_96abe8cfdbcd94::t_418e9c5d6bdf97 27-28,32,42,127-129,131,133
+Sources/SimUseCore/AppStateReport.swift
+  s_96abe8cfdbcd94::t_3fc4230c589caf 1-83
+Sources/SimUseCore/LongPressHelp.swift
+  s_96abe8cfdbcd94::t_f556fa255042bc 1-33
+Sources/SimUseLinux/SimUseLinux.swift
+  s_96abe8cfdbcd94::t_2330a08b16fba7 58-59,73-74
+Tests/AndroidBackendTests/LinuxCommandTests.swift
+  s_96abe8cfdbcd94::t_a538a094ee6451 1-109
+Tests/SimUseCoreTests/AppStateReportTests.swift
+  s_96abe8cfdbcd94::t_21b17dca0e09a5 1-59
+Tests/TapValidationParityTests.swift
+  s_96abe8cfdbcd94::t_04cb0fb969eaeb 4,11,17,44-46,63-64,81,95
+docs/linux.md
+  s_96abe8cfdbcd94::t_b65c5bdd8401d8 14-17
+skills/sim-use/SKILL.md
+  s_96abe8cfdbcd94::t_da3eb560ac0c0a 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "bacbe4eb4a6436a738fb796a8615b61114d96666",
+  "prompts": {},
+  "logical_commit_id": "bacbe4eb4a6436a738fb796a8615b61114d96666",
+  "sessions": {
+    "s_96abe8cfdbcd94": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97b81e55-de42-46fc-b79c-d9e7bc0e7c57",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
