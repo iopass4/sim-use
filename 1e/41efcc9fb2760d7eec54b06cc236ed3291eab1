@@ -1,0 +1,30 @@
+CHANGELOG.md
+  s_96abe8cfdbcd94::t_0e5e06de57ba24 35
+Tests/PreflightScriptTests.swift
+  s_96abe8cfdbcd94::t_73cdbe2561e2c1 62-155,165-167,178-180,190-192,217-223
+Tools/Viewer/package-lock.json
+  s_96abe8cfdbcd94::t_a6a041432abb50 1344-1346,1364-1368,1378-1380,1541-1543,1767-1769,2066-2068
+skills/sim-use/SKILL.md
+  s_96abe8cfdbcd94::t_b0f0e5719e88a1 20-21,140
+skills/sim-use/references/pitfalls.md
+  s_96abe8cfdbcd94::t_f56c2dfc6dec52 49-67
+skills/sim-use/scripts/preflight.py
+  s_96abe8cfdbcd94::t_bba2ec7f50bd37 46-47,168,170-200,265-266,272-273
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "1e41efcc9fb2760d7eec54b06cc236ed3291eab1",
+  "prompts": {},
+  "logical_commit_id": "1e41efcc9fb2760d7eec54b06cc236ed3291eab1",
+  "sessions": {
+    "s_96abe8cfdbcd94": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97b81e55-de42-46fc-b79c-d9e7bc0e7c57",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
