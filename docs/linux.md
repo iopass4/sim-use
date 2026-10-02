@@ -113,3 +113,13 @@ Windows host's adb server so physical devices stay visible.
 A device reached with `adb connect <ip>:5555` through a local adb server in WSL
 needs none of this: the forward is local and the bridge host stays
 `127.0.0.1`.
+
+## Containers
+
+The per-device daemon is a child process that `sim-use` spawns and later
+stops. In a container whose PID 1 does not reap children — for example
+`docker run … sleep infinity` — an exited daemon stays behind as a zombie.
+`kill(pid, 0)` still succeeds on a zombie, so `sim-use daemon stop` reports
+`stopped=false` even though the daemon has exited. Run the container with an
+init process: `docker run --init …`, or `init: true` in Compose (any init that
+reaps children, such as `tini`, works).
