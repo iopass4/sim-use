@@ -1,0 +1,28 @@
+CHANGELOG.md
+  s_96abe8cfdbcd94::t_d4fc148a96b09c 12
+Sources/SimUseCore/LinuxBuildVerbRedirects.swift
+  s_96abe8cfdbcd94::t_9a51e363c0957e 1-19
+Sources/SimUseLinux/SimUseLinux.swift
+  s_96abe8cfdbcd94::t_991725285c28c5 5,25-32
+Tests/SimUseCoreTests/LinuxBuildVerbRedirectsTests.swift
+  s_96abe8cfdbcd94::t_fc5172c4c00847 1-15
+docs/linux.md
+  s_96abe8cfdbcd94::t_fbe0b8f14096d1 19-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "358c995c205ea248584e793d96db0f22cad31239",
+  "prompts": {},
+  "logical_commit_id": "358c995c205ea248584e793d96db0f22cad31239",
+  "sessions": {
+    "s_96abe8cfdbcd94": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97b81e55-de42-46fc-b79c-d9e7bc0e7c57",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
