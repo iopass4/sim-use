@@ -16,7 +16,8 @@ macOS — `ui` / `describe-ui`, `devices`, `tap`, `type`, `paste`,
 flags as on macOS, except that `--device <serial>` is always required. The
 per-device daemon works as on macOS, so warm commands keep their low latency.
 
-Not available on Linux:
+Not available on Linux (running one prints an error that names the verb and
+exits with status 64):
 
 - `sim-use ios <verb>` and `sim-use ios-device <verb>`
 - `record-video` / `stream-video` — host-side H.264 muxing and encoding use

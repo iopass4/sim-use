@@ -2,6 +2,7 @@
 import AndroidBackend
 import ArgumentParser
 import Foundation
+import Glibc
 import SimUseCore
 
 // MARK: - Main Entry Point
@@ -21,6 +22,14 @@ enum EntryPoint {
         // sides of the daemon protocol need to compute it.
         DaemonClient.connectionIdentityProvider = { udid in
             BridgeConnection.daemonConnectionIdentity(udid: udid)
+        }
+        // Verbs this build leaves out would otherwise be parsed as an
+        // argument to the root command and fail with a misleading
+        // "Unknown option" error; name them instead.
+        if let verb = CommandLine.arguments.dropFirst().first,
+           let message = LinuxBuildVerbRedirects.message(for: verb) {
+            FileHandle.standardError.write(Data(message.utf8))
+            Glibc.exit(64)
         }
         await SimUseLinux.main()
     }
