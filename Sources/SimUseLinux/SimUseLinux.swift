@@ -55,9 +55,8 @@ struct SimUseLinux: AsyncParsableCommand {
         abstract: "Observe and act on Android device / emulator screens (Linux build — Android only).",
         discussion: """
         This build ships the Android backend only. iOS verbs, video \
-        capture (`record-video`, `stream-video`), `long-press`, \
-        `app-state`, the Viewer and the skill installer (`init`) are \
-        macOS-only and are absent here.
+        capture (`record-video`, `stream-video`), the Viewer and the \
+        skill installer (`init`) are macOS-only and are absent here.
 
         First run against a device:
 
@@ -71,6 +70,8 @@ struct SimUseLinux: AsyncParsableCommand {
             AndroidDescribeUICommand.self,
             AndroidDevicesCommand.self,
             AndroidTapCommand.self,
+            AndroidLongPressCommand.self,
+            AndroidAppStateCommand.self,
             AndroidTypeCommand.self,
             AndroidPasteCommand.self,
             AndroidKeyboardStateCommand.self,

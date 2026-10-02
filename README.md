@@ -127,8 +127,7 @@ Xcode 26.x install still works, as does Device Hub itself.
 ### Linux (Android only)
 
 The Android backend also builds on Linux with a Swift 6 toolchain — iOS
-verbs, video capture, `long-press`, `app-state`, the Viewer and `init` are
-macOS-only. See [docs/linux.md](docs/linux.md) for what is available, how to
+verbs, video capture, the Viewer and `init` are macOS-only. See [docs/linux.md](docs/linux.md) for what is available, how to
 build and install, and reaching devices from WSL.
 
 ```bash

@@ -11,17 +11,16 @@ declares a separate `#if os(Linux)` target graph: `SimUseCore`,
 The Android verbs are registered at the top level under the same names as on
 macOS — `ui` / `describe-ui`, `devices`, `tap`, `type`, `paste`,
 `keyboard-state`, `swipe`, `button`, `touch`, `gesture`, `multi-touch`,
-`screenshot` — plus the full `sim-use android <verb>` namespace and
-`sim-use daemon`. The per-device daemon works as on macOS, so warm commands
-keep their low latency.
+`screenshot`, `long-press`, `app-state` — plus the full
+`sim-use android <verb>` namespace and `sim-use daemon`. They take the same
+flags as on macOS, except that `--device <serial>` is always required. The
+per-device daemon works as on macOS, so warm commands keep their low latency.
 
 Not available on Linux:
 
 - `sim-use ios <verb>` and `sim-use ios-device <verb>`
 - `record-video` / `stream-video` — host-side H.264 muxing and encoding use
   AVFoundation
-- `long-press`, `app-state` — their Android paths live in the macOS
-  cross-platform forwarders; use `tap --duration` / `touch` in the meantime
 - `viewer`
 - `init` (the agent-skill installer) — copy `skills/sim-use/` into your
   client's skill directory by hand
