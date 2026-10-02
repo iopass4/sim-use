@@ -1,0 +1,20 @@
+docs/linux.md
+  s_96abe8cfdbcd94::t_65fadba2c74821 116-125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "db39bd1c0146f56f7820552128c8defd57c04aac",
+  "prompts": {},
+  "logical_commit_id": "db39bd1c0146f56f7820552128c8defd57c04aac",
+  "sessions": {
+    "s_96abe8cfdbcd94": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97b81e55-de42-46fc-b79c-d9e7bc0e7c57",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
