@@ -281,11 +281,6 @@ public enum DaemonClient {
         return true
     }
 
-    /// Pure comparator: decides whether an extant daemon should be
-    /// torn down for a fresh one. Mirrors exact-string equality for
-    /// now; empty or whitespace-only strings on either side are
-    /// treated as "unknown" and do NOT trigger a restart so we don't
-    /// crash-loop on broken `VersionPlugin` output.
     /// Decides whether a live daemon's connection identity disqualifies it
     /// for a client whose own identity is `current`. A nil `current` means
     /// the target has no connection-dependent state (never restarts); a
@@ -302,10 +297,17 @@ public enum DaemonClient {
     /// the daemon reports its value in `_ping`, the client compares.
     nonisolated(unsafe) public static var connectionIdentityProvider: ((_ udid: String) -> String?)?
 
+    /// The identity `connectionIdentityProvider` gives `udid`, or nil when
+    /// no provider is installed.
     public static func connectionIdentity(for udid: String) -> String? {
         connectionIdentityProvider?(udid)
     }
 
+    /// Pure comparator: decides whether an extant daemon should be
+    /// torn down for a fresh one. Mirrors exact-string equality for
+    /// now; empty or whitespace-only strings on either side are
+    /// treated as "unknown" and do NOT trigger a restart so we don't
+    /// crash-loop on broken `VersionPlugin` output.
     public static func shouldRestartForVersion(daemon: String, current: String) -> Bool {
         let lhs = daemon.trimmingCharacters(in: .whitespacesAndNewlines)
         let rhs = current.trimmingCharacters(in: .whitespacesAndNewlines)
