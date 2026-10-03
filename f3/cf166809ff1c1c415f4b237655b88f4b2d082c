@@ -1,7 +1,9 @@
 Sources/SimUseCore/OutlineCache.swift
   s_29a25344a59371::t_2f53f1e488d809 162,164-174
+  s_29a25344a59371::t_e9d37a6b4e8f00 162,164-174
 Tests/SimUseCoreTests/OutlineCacheRoundTripTests.swift
   s_29a25344a59371::t_a6459bbdf93f40 44-77
+  s_29a25344a59371::t_fd6f029451fc78 44-77
 ---
 {
   "schema_version": "authorship/3.0.0",
