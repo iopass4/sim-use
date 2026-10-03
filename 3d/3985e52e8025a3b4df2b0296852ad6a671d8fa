@@ -6,7 +6,7 @@ Sources/AndroidBackend/Adb/Adb.swift
   "git_ai_version": "1.6.22",
   "base_commit_sha": "3d3985e52e8025a3b4df2b0296852ad6a671d8fa",
   "prompts": {},
-  "logical_commit_id": "351513214500102ee9070a887715c0ea923ab650",
+  "logical_commit_id": "3d3985e52e8025a3b4df2b0296852ad6a671d8fa",
   "sessions": {
     "s_29a25344a59371": {
       "agent_id": {
