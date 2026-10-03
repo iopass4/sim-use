@@ -1,22 +1,22 @@
-README.md
-  s_29a25344a59371::t_4eb7a47e4eeaf6 127-137,159
-skills/sim-use/SKILL.md
-  s_29a25344a59371::t_c684d8bf819c08 20
-AGENTS.md
-  s_29a25344a59371::t_7586c3aa52b789 106-109,130
 docs/linux.md
   s_49b7ec41a998cd::t_ab8ae9a1960d91 1-95
 CHANGELOG.md
   s_29a25344a59371::t_c36c538a76e7e8 12-14
+skills/sim-use/SKILL.md
+  s_29a25344a59371::t_c684d8bf819c08 20
 scripts/install-linux.sh
   s_29a25344a59371::t_ec8c29fbad7fa5 1-77
+AGENTS.md
+  s_29a25344a59371::t_7586c3aa52b789 106-109,130
+README.md
+  s_29a25344a59371::t_4eb7a47e4eeaf6 127-137,159
 ---
 {
   "schema_version": "authorship/3.0.0",
   "git_ai_version": "1.6.22",
   "base_commit_sha": "a5d4ba4603d5f5aa1ff940f1785c615f1d7e81b3",
   "prompts": {},
-  "logical_commit_id": "85d80c2b9b2cd3993c1828cee6dcb1b7c88c90c8",
+  "logical_commit_id": "a5d4ba4603d5f5aa1ff940f1785c615f1d7e81b3",
   "sessions": {
     "s_29a25344a59371": {
       "agent_id": {
