@@ -1,0 +1,20 @@
+Sources/SimUse/main.swift
+  s_29a25344a59371::t_1369edae85e97a 66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "debe770f8b1bd3dc317e06bad0c51635391afc14",
+  "prompts": {},
+  "logical_commit_id": "a95385915f3c70297888bb0a537c3d7fe7d72bc0",
+  "sessions": {
+    "s_29a25344a59371": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb9d2c6b-bcce-4760-b6af-c8a3b35bf529",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}

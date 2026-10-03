@@ -1,0 +1,18 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8e9ce671ef5516695f629b86aea8db983571746e",
+  "prompts": {},
+  "logical_commit_id": "b814219686b139010bfb2ebd1f15ae0acb76b02a",
+  "sessions": {
+    "s_29a25344a59371": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb9d2c6b-bcce-4760-b6af-c8a3b35bf529",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
