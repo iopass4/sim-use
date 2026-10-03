@@ -1,38 +1,38 @@
-Sources/AndroidBackend/Verbs/AndroidDeviceController.swift
-  s_29a25344a59371::t_30121e43577067 3-7
-Sources/SimUseCore/Daemon/DaemonDispatch.swift
-  s_29a25344a59371::t_94e3a7e623fd58 3,5-7
 Sources/SimUseCore/Daemon/DaemonSocket.swift
   s_29a25344a59371::t_b8ab645556ddbf 2,4-6
-Sources/AndroidBackend/Bridge/BridgeClient.swift
-  s_29a25344a59371::t_86208f718df1ad 3-7
-Tests/SimUseCoreTests/DaemonPathsTests.swift
-  s_29a25344a59371::t_7cc69ae4a09868 3,5-7
-Sources/SimUseCore/Daemon/DaemonClient.swift
-  s_29a25344a59371::t_a16940e696e990 2,4-6
+Sources/SimUseCore/Daemon/DaemonDispatch.swift
+  s_29a25344a59371::t_94e3a7e623fd58 3,5-7
+Sources/SimUseCore/ProcessControl.swift
+  s_29a25344a59371::t_33b892b9b8fece 3,5
+Sources/AndroidBackend/Verbs/AndroidDeviceController.swift
+  s_29a25344a59371::t_30121e43577067 3-7
 Tests/AndroidBackendTests/AdbRunnerTests.swift
   s_29a25344a59371::t_9e4262ac0f716a 3,5,53,99
-Sources/SimUseCore/Types/SimUseExecutableCommand.swift
-  s_29a25344a59371::t_d247bb404ab53d 3,5-7
 Sources/AndroidBackend/Bridge/BridgeEnvelope.swift
   s_29a25344a59371::t_f32b1c77a4a62e 3-7
+Sources/AndroidBackend/Bridge/BridgeClient.swift
+  s_29a25344a59371::t_86208f718df1ad 3-7
 Sources/AndroidBackend/Bridge/BridgeClientRegistry.swift
   s_29a25344a59371::t_420697f59edf50 3-7
 Sources/SimUseCore/Daemon/DaemonServer.swift
   s_29a25344a59371::t_9f2f5f93d4ec54 2,4-6
-Sources/SimUseCore/LinuxCompat.swift
-  s_29a25344a59371::t_aa50bfa82b774d 1-80
-Sources/SimUseCore/ProcessControl.swift
-  s_29a25344a59371::t_33b892b9b8fece 3,5
 Sources/SimUseCore/DaemonPaths.swift
   s_29a25344a59371::t_ec2a5ed4806044 2,4-6
+Tests/SimUseCoreTests/DaemonPathsTests.swift
+  s_29a25344a59371::t_7cc69ae4a09868 3,5-7
+Sources/SimUseCore/LinuxCompat.swift
+  s_29a25344a59371::t_aa50bfa82b774d 1-80
+Sources/SimUseCore/Daemon/DaemonClient.swift
+  s_29a25344a59371::t_a16940e696e990 2,4-6
+Sources/SimUseCore/Types/SimUseExecutableCommand.swift
+  s_29a25344a59371::t_d247bb404ab53d 3,5-7
 ---
 {
   "schema_version": "authorship/3.0.0",
   "git_ai_version": "1.6.22",
   "base_commit_sha": "0e08cda001f66fe281077f9caa2dd9e2f09e73f3",
   "prompts": {},
-  "logical_commit_id": "f298325569bb116c7f2eefe7adcfe78a3d6f865c",
+  "logical_commit_id": "0e08cda001f66fe281077f9caa2dd9e2f09e73f3",
   "sessions": {
     "s_29a25344a59371": {
       "agent_id": {
