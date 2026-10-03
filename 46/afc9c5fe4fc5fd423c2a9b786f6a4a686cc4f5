@@ -1,18 +1,18 @@
-Sources/SimUseCore/Daemon/DaemonCommand.swift
-  s_29a25344a59371::t_35333f99936782 3,5-7,14-20,26-36,62-66,68
-Sources/SimUseCore/Daemon/DaemonDispatch.swift
-  s_29a25344a59371::t_eb273ad848669c 32-34
 Sources/SimUse/main.swift
   s_29a25344a59371::t_1369edae85e97a 21-24,48,68-98
+Sources/SimUseCore/Daemon/DaemonCommand.swift
+  s_29a25344a59371::t_35333f99936782 3,5-7,14-20,26-36,62-66,68
 Tests/DaemonCommandParserInjectionTests.swift
   s_29a25344a59371::t_3bbc9e8d483321 10,19,57
+Sources/SimUseCore/Daemon/DaemonDispatch.swift
+  s_29a25344a59371::t_eb273ad848669c 32-34
 ---
 {
   "schema_version": "authorship/3.0.0",
   "git_ai_version": "1.6.22",
   "base_commit_sha": "46afc9c5fe4fc5fd423c2a9b786f6a4a686cc4f5",
   "prompts": {},
-  "logical_commit_id": "a95385915f3c70297888bb0a537c3d7fe7d72bc0",
+  "logical_commit_id": "46afc9c5fe4fc5fd423c2a9b786f6a4a686cc4f5",
   "sessions": {
     "s_29a25344a59371": {
       "agent_id": {
