@@ -1,11 +1,11 @@
-Sources/AndroidBackend/Verbs/AndroidCommand.swift
-  s_29a25344a59371::t_d324b6b37c9d14 35-39
-  s_29a25344a59371::t_3be2bc03d8d72f 31,40-45
-Package.swift
-  s_29a25344a59371::t_bdeff5ca612b44 64-70,73-149,360
 Sources/SimUseLinux/SimUseLinux.swift
-  s_29a25344a59371::t_bc1bd4bfa04f3f 1-49
-  s_29a25344a59371::t_c3c4176269e0e5 50-81
+  s_29a25344a59371::t_3a0836acd44309 1-49
+  s_96abe8cfdbcd94::t_660c3a02520dc9 50-81
+Sources/AndroidBackend/Verbs/AndroidCommand.swift
+  s_29a25344a59371::t_ed724b277d9e73 35-39
+  s_29a25344a59371::t_3fbeac0a863ea9 31,40-45
+Package.swift
+  s_29a25344a59371::t_d196786de58a3d 64-70,73-149,360
 ---
 {
   "schema_version": "authorship/3.0.0",
@@ -19,6 +19,14 @@ Sources/SimUseLinux/SimUseLinux.swift
         "tool": "claude",
         "id": "cb9d2c6b-bcce-4760-b6af-c8a3b35bf529",
         "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    },
+    "s_96abe8cfdbcd94": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97b81e55-de42-46fc-b79c-d9e7bc0e7c57",
+        "model": "claude-opus-5-5"
       },
       "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
     }
