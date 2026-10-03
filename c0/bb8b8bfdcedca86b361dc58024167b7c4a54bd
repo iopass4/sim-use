@@ -8,7 +8,7 @@ Tests/SimUseCoreTests/OutlineCacheRoundTripTests.swift
   "git_ai_version": "1.6.22",
   "base_commit_sha": "c0bb8b8bfdcedca86b361dc58024167b7c4a54bd",
   "prompts": {},
-  "logical_commit_id": "5c0ca01890337e88ba43398c8e02942fee93073a",
+  "logical_commit_id": "c0bb8b8bfdcedca86b361dc58024167b7c4a54bd",
   "sessions": {
     "s_29a25344a59371": {
       "agent_id": {
