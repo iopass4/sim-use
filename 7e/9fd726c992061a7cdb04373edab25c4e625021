@@ -12,7 +12,7 @@ Sources/SimUseLinux/SimUseLinux.swift
   "git_ai_version": "1.6.22",
   "base_commit_sha": "7e9fd726c992061a7cdb04373edab25c4e625021",
   "prompts": {},
-  "logical_commit_id": "dac4667f90b70dab8bfbe8f4180e1736505402ef",
+  "logical_commit_id": "7e9fd726c992061a7cdb04373edab25c4e625021",
   "sessions": {
     "s_29a25344a59371": {
       "agent_id": {
