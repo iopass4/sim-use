@@ -83,6 +83,11 @@ reused only while `adb forward --list` still shows it for the device. If
 `adb forward --list` itself fails, the command fails with that adb error and
 the cached session is kept, rather than opening a second forward.
 
+A daemon that is busy with a command from another connection cannot be
+restarted at once. A command for a different connection is then refused with
+a "started for a different device connection" error and is not run; retry it
+after the other command finishes.
+
 Equivalent spellings of the same server (no variables,
 `ANDROID_ADB_SERVER_PORT=5037`, `ADB_SERVER_SOCKET=tcp:localhost:5037`) count
 as one connection, so switching between them keeps the daemon and the
