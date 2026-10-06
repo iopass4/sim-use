@@ -34,6 +34,9 @@ public enum ElementResolutionError: LocalizedError, HintProviding {
         candidateKind: String,
         suggestedAlternative: String?
     )
+    /// `candidates` holds one pre-rendered `'label' [Type] #id` entry per
+    /// match (not de-duplicated), the same shape the physical-device
+    /// backend uses, so matches that share a label stay distinguishable.
     case multipleMatches(count: Int, kind: String, value: String, hasUniqueIDs: Bool, candidates: [String])
     case invalidFrame(reason: String)
     case invalidPattern(kind: String, pattern: String, reason: String)
@@ -57,10 +60,16 @@ public enum ElementResolutionError: LocalizedError, HintProviding {
             }
             return "No accessibility element matched \(kind) '\(value)'. \(tip)"
         case .multipleMatches(let count, let kind, let value, let hasUniqueIDs, _):
-            if hasUniqueIDs {
-                return "Multiple (\(count)) accessibility elements matched \(kind) '\(value)'. Use --id when labels are not unique. \(tip)"
+            let narrow = "add --element-type or --frame to narrow the match"
+            // Recommending `--id` to a caller that already used `--id` is a
+            // dead end; the id itself is not unique on this screen.
+            if kind == "--id" {
+                return "Multiple (\(count)) accessibility elements matched --id '\(value)'. The id is not unique on this screen; \(narrow). \(tip)"
             }
-            return "Multiple (\(count)) accessibility elements matched \(kind) '\(value)', and none of the matches expose AXUniqueId on this screen. Use coordinates for this step (tap -x/-y) or target a more specific screen/state. \(tip)"
+            if hasUniqueIDs {
+                return "Multiple (\(count)) accessibility elements matched \(kind) '\(value)'. Use --id when labels are not unique, or \(narrow). \(tip)"
+            }
+            return "Multiple (\(count)) accessibility elements matched \(kind) '\(value)', and none of the matches expose AXUniqueId on this screen. Use coordinates for this step (tap -x/-y), or \(narrow). \(tip)"
         case .invalidFrame(let reason):
             return "\(reason) \(tip)"
         case .invalidPattern(let kind, let pattern, let reason):
@@ -98,8 +107,8 @@ public enum ElementResolutionError: LocalizedError, HintProviding {
             guard let suggestedAlternative else { return base }
             guard let base else { return suggestedAlternative }
             return "\(base); \(suggestedAlternative)"
-        case .multipleMatches(_, let kind, let value, _, let candidates):
-            return Self.formatHint(prefix: "pattern=\(kind) '\(value)'", label: "matches", labels: candidates)
+        case .multipleMatches(let count, let kind, let value, _, let candidates):
+            return Self.formatHint(prefix: "pattern=\(kind) '\(value)'", label: "matches", entries: candidates, total: count)
         case .invalidFrame, .invalidPattern:
             return nil
         }
@@ -117,21 +126,25 @@ public enum ElementResolutionError: LocalizedError, HintProviding {
     }
 
     private static func formatHint(prefix: String, label: String, labels: [String]) -> String? {
-        guard !labels.isEmpty else { return prefix }
+        formatHint(prefix: prefix, label: label, entries: labels.map { "'\($0)'" }, total: labels.count)
+    }
+
+    /// `entries` are already rendered. `total` is the real number of items,
+    /// which can be larger than `entries.count` when the caller capped them.
+    private static func formatHint(prefix: String, label: String, entries: [String], total: Int) -> String? {
+        guard !entries.isEmpty else { return prefix }
         let cap = 10
-        let total = labels.count
-        let shown = Array(labels.prefix(cap))
-        let rendered = shown.map { "'\($0)'" }.joined(separator: ", ")
+        let rendered = entries.prefix(cap).joined(separator: ", ")
         let countTag = total > cap ? "(top \(cap)/\(total))" : "(\(total))"
         return "\(prefix); \(label) \(countTag): \(rendered)"
     }
 }
 
 public struct AccessibilityTargetResolver {
-    public static let describeUITip = "Make sure the app is on the expected screen, then run `sim-use describe-ui --udid <SIMULATOR_UDID>` and prefer --id when available."
+    public static let describeUITip = "Make sure the app is on the expected screen, then run `sim-use describe-ui --device <UDID>` and prefer --id when available."
 
-    /// Cap on how many candidate labels are collected for the `notFound`
-    /// hint. Big AX trees can carry hundreds of labelled nodes; truncating
+    /// Cap on how many candidates are collected for the `notFound` and
+    /// `multipleMatches` hints. Big AX trees can carry hundreds of labelled nodes; truncating
     /// keeps the JSON envelope small while still letting agents see the
     /// space of available targets.
     private static let candidateCap = 32
@@ -448,7 +461,7 @@ public struct AccessibilityTargetResolver {
                 kind: kind,
                 value: value,
                 hasUniqueIDs: hasUniqueIDs,
-                candidates: candidateLabels(for: matches)
+                candidates: matchDescriptions(for: matches)
             )
         }
         return matches[0]
@@ -501,6 +514,18 @@ public struct AccessibilityTargetResolver {
             }
         }
         return ordered
+    }
+
+    /// One `'label' [Type] #id` entry per match for the `multipleMatches`
+    /// hint, matching the physical-device backend. Unlike `candidateLabels`
+    /// this does not de-duplicate: matches often share one label, and the
+    /// type and id are what tell them apart.
+    private static func matchDescriptions(for matches: [AccessibilityElement]) -> [String] {
+        matches.prefix(candidateCap).map { element in
+            let type = element.type.map { " [\($0)]" } ?? ""
+            let id = element.normalizedUniqueId.flatMap { $0.isEmpty ? nil : " #\($0)" } ?? ""
+            return "'\(element.normalizedLabel ?? "")'\(type)\(id)"
+        }
     }
 
     /// Same shape as `candidateLabels` but pulls `AXUniqueId`s — used

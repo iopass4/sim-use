@@ -173,7 +173,7 @@ public enum OutlineCache {
         public var errorDescription: String? {
             switch self {
             case .missing(_, let udid):
-                return "No describe-ui snapshot for UDID \(udid). Run `sim-use describe-ui --udid \(udid)` first."
+                return "No describe-ui snapshot for UDID \(udid). Run `sim-use describe-ui --device \(udid)` first."
             case .corrupt(_, let underlying):
                 return "Outline cache is corrupt (\(underlying.localizedDescription)). Re-run `sim-use describe-ui`."
             case .versionMismatch(_, let got, let expected):

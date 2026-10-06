@@ -217,6 +217,6 @@ Edge cases:
 
 Every command supports `--json`. Shape: `{ "ok": true/false, "data": {...}, "error": "...", "hint": "..." }`.
 
-The `hint` field on errors contains actionable guidance (e.g. candidate labels on `multipleMatches`). Use it for self-correcting retries.
+The `hint` field on errors contains actionable guidance (e.g. each match as `'label' [Type] #id` on `multipleMatches`). Use it for self-correcting retries.
 
 For `ui --json`, prefer `data.outline` / `data.entries` / `data.lists`. The `data.raw` field is the full AX tree (~3x larger); pass `--no-raw` to omit it in agent loops (on older binaries without the flag, use `jq 'del(.data.raw)'`).

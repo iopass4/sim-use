@@ -102,8 +102,8 @@ struct LabelContainsResolverTests {
             #expect(count == 2)
             #expect(kind == "--label-contains")
             #expect(value == "Submit")
-            #expect(candidates.contains("Submit form"))
-            #expect(candidates.contains("Submit reply"))
+            #expect(candidates.contains("'Submit form' [Button]"))
+            #expect(candidates.contains("'Submit reply' [Button]"))
             let hint = error.hint ?? ""
             #expect(hint.contains("--label-contains"))
             #expect(hint.contains("Submit"))
@@ -199,8 +199,83 @@ struct LabelRegexResolverTests {
                 return
             }
             #expect(count == 2)
-            #expect(candidates == ["Reply 1", "Reply 2"])
+            #expect(candidates == ["'Reply 1' [Button]", "'Reply 2' [Button]"])
         }
+    }
+
+    @Test("multipleMatches lists every match with type and id, even when labels are equal")
+    func multipleMatchesSameLabelEntries() throws {
+        let roots: [AccessibilityElement] = [
+            try makeElement(type: "Button", label: "Help", id: "help", frame: (300, 60, 46, 36)),
+            try makeElement(type: "Image", label: "Help", id: "help", frame: (90, 320, 14, 14)),
+            try makeElement(type: "Image", label: "Help", id: "help", frame: (90, 420, 14, 14)),
+        ]
+        do {
+            _ = try AccessibilityTargetResolver.resolveCenterPoint(roots: roots, query: .id("help"))
+            Issue.record("Expected multipleMatches error")
+        } catch let error as ElementResolutionError {
+            guard case let .multipleMatches(count, kind, _, _, candidates) = error else {
+                Issue.record("Wrong case: \(error)")
+                return
+            }
+            #expect(count == 3)
+            #expect(kind == "--id")
+            #expect(candidates == ["'Help' [Button] #help", "'Help' [Image] #help", "'Help' [Image] #help"])
+            #expect(error.hint?.contains("matches (3):") == true)
+        }
+    }
+
+    @Test("ambiguous --id points at --element-type / --frame instead of --id")
+    func ambiguousIDSuggestsNarrowing() throws {
+        let roots: [AccessibilityElement] = [
+            try makeElement(type: "Button", label: "Help", id: "help"),
+            try makeElement(type: "Image", label: "Help", id: "help"),
+        ]
+        do {
+            _ = try AccessibilityTargetResolver.resolveCenterPoint(roots: roots, query: .id("help"))
+            Issue.record("Expected multipleMatches error")
+        } catch let error as ElementResolutionError {
+            let message = error.errorDescription ?? ""
+            #expect(!message.contains("Use --id"))
+            #expect(message.contains("--element-type"))
+            #expect(message.contains("--frame"))
+        }
+    }
+
+    @Test("ambiguous label with ids suggests --id and narrowing")
+    func ambiguousLabelSuggestsIDAndNarrowing() throws {
+        let roots: [AccessibilityElement] = [
+            try makeElement(type: "Button", label: "Save", id: "saveDraft"),
+            try makeElement(type: "Button", label: "Save", id: "savePost"),
+        ]
+        do {
+            _ = try AccessibilityTargetResolver.resolveCenterPoint(roots: roots, query: .label("Save"))
+            Issue.record("Expected multipleMatches error")
+        } catch let error as ElementResolutionError {
+            let message = error.errorDescription ?? ""
+            #expect(message.contains("Use --id"))
+            #expect(message.contains("--element-type"))
+            #expect(error.hint?.contains("'Save' [Button] #saveDraft") == true)
+        }
+    }
+
+    @Test("multipleMatches hint count reports all matches past the display cap")
+    func multipleMatchesHintCountPastCap() throws {
+        let roots: [AccessibilityElement] = try (1...12).map { _ in
+            try makeElement(type: "Button", label: "Item")
+        }
+        do {
+            _ = try AccessibilityTargetResolver.resolveCenterPoint(roots: roots, query: .label("Item"))
+            Issue.record("Expected multipleMatches error")
+        } catch let error as ElementResolutionError {
+            #expect(error.hint?.contains("matches (top 10/12):") == true)
+        }
+    }
+
+    @Test("describe-ui tip recommends --device, not the deprecated --udid")
+    func describeUITipUsesDeviceFlag() {
+        #expect(AccessibilityTargetResolver.describeUITip.contains("--device"))
+        #expect(!AccessibilityTargetResolver.describeUITip.contains("--udid"))
     }
 
     @Test("regex with element-type filter narrows pool")
