@@ -142,6 +142,10 @@ public enum DaemonDispatch {
             return handleManagement(management, request: request, snapshot: snapshot)
         }
 
+        if let mismatch = connectionMismatchOutcome(request, snapshot: snapshot) {
+            return mismatch
+        }
+
         guard let parser = commandParser else {
             return errorOutcome(
                 id: request.id,
@@ -189,6 +193,35 @@ public enum DaemonDispatch {
                 hint: (error as? HintProviding)?.hint
             )
         }
+    }
+
+    /// Refuse a business request whose connection identity differs from
+    /// the one this daemon started under, before it is parsed or run.
+    /// The client's `_ping` gate restarts such a daemon, but it cannot
+    /// confirm the identity when the ping times out behind another
+    /// client's slow request (the daemon serves one connection at a
+    /// time). Checking the identity on the request itself closes that
+    /// gap and the window between the ping and the request.
+    ///
+    /// The comparison is exact: a request without an identity only runs
+    /// in a daemon without one (iOS targets, no provider installed).
+    /// The identities are not echoed: they can carry host addresses.
+    public static func connectionMismatchOutcome(_ request: DaemonRequest, snapshot: Snapshot) -> Outcome? {
+        guard request.connectionIdentity != snapshot.connectionIdentity else { return nil }
+        return errorOutcome(
+            id: request.id,
+            error: """
+                sim-use daemon: the daemon for \(snapshot.udid) was started for a different \
+                device connection (adb server or bridge host), so '\(request.cmd)' was not run.
+                """,
+            kind: .permanent,
+            hint: """
+                A command from the other connection is probably still running in that daemon. \
+                Retry after it finishes; sim-use then restarts the daemon for this connection. \
+                `sim-use daemon stop --udid \(snapshot.udid)` stops the daemon immediately, \
+                including any command it is running.
+                """
+        )
     }
 
     /// Build the response for a stale-simulator detection (LINEIOS-216942):

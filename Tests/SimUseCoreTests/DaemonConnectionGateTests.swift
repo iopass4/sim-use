@@ -33,6 +33,90 @@ struct DaemonConnectionComparatorTests {
     }
 }
 
+// The `_ping` gate cannot vet a daemon whose probe times out (it serves
+// one connection at a time, so a long command from another client blocks
+// the probe). The daemon therefore also checks the identity carried on
+// each business request before it parses or runs it.
+@Suite("DaemonDispatch request connection gate")
+@MainActor
+struct DaemonDispatchConnectionGateTests {
+    private func snapshot(identity: String?) -> DaemonDispatch.Snapshot {
+        DaemonDispatch.Snapshot(
+            pid: 1,
+            startTime: Date(),
+            udid: "emulator-5554",
+            simUseVersion: "gate-test",
+            connectionIdentity: identity
+        )
+    }
+
+    private struct ErrorEnvelope: Decodable {
+        let ok: Bool
+        let error: String
+        let kind: DaemonErrorKind
+        let hint: String?
+    }
+
+    private struct PingEnvelope: Decodable {
+        let ok: Bool
+        let data: DaemonPingData
+    }
+
+    @Test("Matching identities pass the gate")
+    func matching() {
+        let request = DaemonRequest(cmd: "tap", connectionIdentity: "adb=A")
+        #expect(DaemonDispatch.connectionMismatchOutcome(request, snapshot: snapshot(identity: "adb=A")) == nil)
+    }
+
+    @Test("A target without an identity passes the gate")
+    func noIdentity() {
+        let request = DaemonRequest(cmd: "tap")
+        #expect(DaemonDispatch.connectionMismatchOutcome(request, snapshot: snapshot(identity: nil)) == nil)
+    }
+
+    @Test(
+        "Any other combination is refused",
+        arguments: [
+            ("adb=B" as String?, "adb=A" as String?),
+            (nil, "adb=A"),
+            ("adb=A", nil),
+        ]
+    )
+    func mismatch(requestIdentity: String?, daemonIdentity: String?) throws {
+        let request = DaemonRequest(id: "r1", cmd: "tap", connectionIdentity: requestIdentity)
+        let outcome = try #require(
+            DaemonDispatch.connectionMismatchOutcome(request, snapshot: snapshot(identity: daemonIdentity))
+        )
+        #expect(!outcome.shouldStopDaemon)
+        let envelope = try JSONDecoder().decode(ErrorEnvelope.self, from: outcome.responseData)
+        #expect(!envelope.ok)
+        #expect(envelope.kind == .permanent)
+        #expect(envelope.error.contains("'tap' was not run"))
+        // Identities can carry host addresses; they stay out of the output.
+        #expect(!envelope.error.contains("adb="))
+        #expect(envelope.hint?.contains("sim-use daemon stop --udid emulator-5554") == true)
+    }
+
+    // The gate runs before `DaemonDispatch.commandParser` is read, so this
+    // does not depend on (or race) the parser other suites install.
+    @Test("handle refuses a mismatched business request before parsing it")
+    func handleRefusesBeforeParsing() async throws {
+        let request = DaemonRequest(cmd: "tap", args: ["--no-such-flag"], connectionIdentity: "adb=B")
+        let outcome = await DaemonDispatch.handle(request, snapshot: snapshot(identity: "adb=A"))
+        let envelope = try JSONDecoder().decode(ErrorEnvelope.self, from: outcome.responseData)
+        #expect(envelope.error.contains("different device connection"))
+    }
+
+    @Test("Management commands are not gated")
+    func managementBypassesGate() async throws {
+        let request = DaemonRequest(cmd: DaemonProtocol.ManagementCommand.ping.rawValue)
+        let outcome = await DaemonDispatch.handle(request, snapshot: snapshot(identity: "adb=A"))
+        let envelope = try JSONDecoder().decode(PingEnvelope.self, from: outcome.responseData)
+        #expect(envelope.ok)
+        #expect(envelope.data.connectionIdentity == "adb=A")
+    }
+}
+
 // Serialised: DaemonServer installs process-wide SIGTERM/SIGINT sources.
 @Suite("DaemonClient.ensureCompatibleDaemon connection gate", .serialized)
 @MainActor

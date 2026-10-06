@@ -22,11 +22,17 @@ public struct DaemonRequest: Codable {
     public let id: String?
     public let cmd: String
     public let args: [String]
+    /// Connection identity of the client that sent a business request
+    /// (see `DaemonClient.connectionIdentityProvider`). The daemon runs
+    /// the request only when it equals its own startup identity.
+    /// Omitted from the wire when nil.
+    public let connectionIdentity: String?
 
-    public init(id: String? = nil, cmd: String, args: [String] = []) {
+    public init(id: String? = nil, cmd: String, args: [String] = [], connectionIdentity: String? = nil) {
         self.id = id
         self.cmd = cmd
         self.args = args
+        self.connectionIdentity = connectionIdentity
     }
 
     public init(from decoder: Decoder) throws {
@@ -34,6 +40,7 @@ public struct DaemonRequest: Codable {
         self.id = try container.decodeIfPresent(String.self, forKey: .id)
         self.cmd = try container.decode(String.self, forKey: .cmd)
         self.args = try container.decodeIfPresent([String].self, forKey: .args) ?? []
+        self.connectionIdentity = try container.decodeIfPresent(String.self, forKey: .connectionIdentity)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -41,9 +48,10 @@ public struct DaemonRequest: Codable {
         if let id { try container.encode(id, forKey: .id) }
         try container.encode(cmd, forKey: .cmd)
         try container.encode(args, forKey: .args)
+        if let connectionIdentity { try container.encode(connectionIdentity, forKey: .connectionIdentity) }
     }
 
-    private enum CodingKeys: String, CodingKey { case id, cmd, args }
+    private enum CodingKeys: String, CodingKey { case id, cmd, args, connectionIdentity }
 }
 
 public struct DaemonSuccessResponse<Data: Encodable>: Encodable {

@@ -44,6 +44,23 @@ struct DaemonRequestCodableTests {
         #expect(decoded.args == ["--from", "1,2", "--to", "3,4"])
     }
 
+    @Test("Connection identity is encoded when set and omitted when nil")
+    func encodeConnectionIdentity() throws {
+        let req = DaemonRequest(cmd: "tap", args: [], connectionIdentity: "adb=tcp:localhost:5037 host=127.0.0.1")
+        let text = jsonString(try encoderStable().encode(req))
+        #expect(text == #"{"args":[],"cmd":"tap","connectionIdentity":"adb=tcp:localhost:5037 host=127.0.0.1"}"#)
+        #expect(!jsonString(try encoderStable().encode(DaemonRequest(cmd: "tap"))).contains("connectionIdentity"))
+    }
+
+    @Test("Connection identity round-trips and is nil when absent")
+    func connectionIdentityRoundTrip() throws {
+        let req = DaemonRequest(cmd: "tap", connectionIdentity: "adb=A")
+        let decoded = try JSONDecoder().decode(DaemonRequest.self, from: try JSONEncoder().encode(req))
+        #expect(decoded.connectionIdentity == "adb=A")
+        let legacy = try JSONDecoder().decode(DaemonRequest.self, from: Data(#"{"cmd":"tap","args":[]}"#.utf8))
+        #expect(legacy.connectionIdentity == nil)
+    }
+
     @Test("Absent args on the wire decode as empty, not an error")
     func absentArgsDefaultsEmpty() throws {
         let wire = Data(#"{"cmd":"_ping"}"#.utf8)

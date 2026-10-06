@@ -40,6 +40,11 @@ public enum DaemonClient {
         let paths = DaemonPaths(udid: udid, baseDirectory: baseDirectory)
         try paths.ensureBaseDirectory()
 
+        // Read once: the gate below and every request this call sends
+        // must agree on the connection, so the daemon can refuse a
+        // request the gate could not vet (see `connectionMismatchOutcome`).
+        let identity = connectionIdentity(for: udid)
+
         var liveness = paths.filesystemLiveness()
         trace("invoke cmd=\(command) liveness=\(liveness)")
 
@@ -51,12 +56,15 @@ public enum DaemonClient {
         // no longer reflects the CLI's code or configuration. Returns early when the daemon is either
         // absent, already compatible, or the probe itself was
         // inconclusive — in all those cases the existing fast/slow
-        // paths handle the rest.
+        // paths handle the rest. An inconclusive probe (e.g. a `_ping`
+        // timed out behind another client's long command) does not vet
+        // the connection; the daemon then refuses the request itself
+        // when its `connectionIdentity` differs.
         if case .probablyAlive = liveness,
            await ensureCompatibleDaemon(
                paths: paths,
                currentVersion: VERSION,
-               currentConnectionIdentity: connectionIdentity(for: udid)
+               currentConnectionIdentity: identity
            ) {
             liveness = paths.filesystemLiveness()
             trace("post-gate liveness=\(liveness)")
@@ -68,6 +76,7 @@ public enum DaemonClient {
                 return try await sendClassifiedRequest(
                     command: command,
                     args: args,
+                    connectionIdentity: identity,
                     paths: paths,
                     transientRetryDelay: transientRetryDelay
                 )
@@ -103,6 +112,7 @@ public enum DaemonClient {
             return try await sendClassifiedRequest(
                 command: command,
                 args: args,
+                connectionIdentity: identity,
                 paths: paths,
                 transientRetryDelay: transientRetryDelay
             )
@@ -195,11 +205,13 @@ public enum DaemonClient {
     private static func sendClassifiedRequest(
         command: String,
         args: [String],
+        connectionIdentity: String?,
         paths: DaemonPaths,
         transientRetryDelay: TimeInterval
     ) async throws -> Data {
+        let request = DaemonRequest(cmd: command, args: args, connectionIdentity: connectionIdentity)
         do {
-            let response = try sendRequest(command: command, args: args, to: paths.socketURL.path)
+            let response = try sendRequest(request, to: paths.socketURL.path)
             trace("sendRequest OK \(response.count) bytes, classifying")
             return try classify(response: response)
         } catch let error as DaemonClientError {
@@ -214,7 +226,7 @@ public enum DaemonClient {
                 try await Task.sleep(nanoseconds: UInt64(cappedSeconds * 1_000_000_000))
             }
             try Task.checkCancellation()
-            let response = try sendRequest(command: command, args: args, to: paths.socketURL.path)
+            let response = try sendRequest(request, to: paths.socketURL.path)
             trace("retry sendRequest OK \(response.count) bytes, classifying")
             return try classify(response: response)
         }
@@ -369,8 +381,7 @@ public enum DaemonClient {
     ) throws -> Data {
         signal(SIGPIPE, SIG_IGN)
         let response = try sendRequest(
-            command: command,
-            args: args,
+            DaemonRequest(cmd: command, args: args),
             to: socketPath,
             readTimeout: readTimeout
         )
@@ -385,8 +396,7 @@ public enum DaemonClient {
     // MARK: - Wire
 
     private static func sendRequest(
-        command: String,
-        args: [String],
+        _ request: DaemonRequest,
         to socketPath: String,
         readTimeout: TimeInterval? = nil
     ) throws -> Data {
@@ -395,7 +405,7 @@ public enum DaemonClient {
 
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-        var requestData = try encoder.encode(DaemonRequest(cmd: command, args: args))
+        var requestData = try encoder.encode(request)
         requestData.append(0x0A)
 
         let writeResult = DaemonSocket.writeAll(fd: fd, data: requestData)
