@@ -20,8 +20,8 @@ Not available on Linux (running one prints an error that names the verb and
 exits with status 64):
 
 - `sim-use ios <verb>` and `sim-use ios-device <verb>`
-- `record-video` / `stream-video` — host-side H.264 muxing and encoding use
-  AVFoundation
+- `record-video` / `stream-video`, at the top level and under
+  `sim-use android` — host-side H.264 muxing and encoding use AVFoundation
 - `viewer`
 - `init` (the agent-skill installer) — copy `skills/sim-use/` into your
   client's skill directory by hand
