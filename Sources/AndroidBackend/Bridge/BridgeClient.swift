@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 import Foundation
+#if canImport(FoundationNetworking)
+// URLSession / URLRequest / HTTPURLResponse live in a separate module in
+// swift-corelibs-foundation; on Apple platforms this import does not exist.
+import FoundationNetworking
+#endif
 import SimUseCore
 
 /// HTTP client that speaks the bridge wire protocol served by the
@@ -52,8 +57,15 @@ public final class BridgeClient: @unchecked Sendable {
     public let connectionTimeout: TimeInterval
     public let readTimeout: TimeInterval
 
+    /// Adb server + bridge host this client's traffic goes to.
+    public let connection: BridgeConnection
+    private let sessionHome: URL
+
     private let lock = NSLock()
     private var cachedLocalPort: Int?
+    /// Set while `cachedLocalPort` came from disk and has not yet been
+    /// confirmed as this serial's forward on the current adb server.
+    private var restoredPortUnconfirmed = false
     private var cachedAuthToken: String?
     private var verifiedProtocolVersion: Bool = false
     private var cachedDisplay: DisplayMetrics?
@@ -63,10 +75,14 @@ public final class BridgeClient: @unchecked Sendable {
         serial: String,
         urlSession: URLSession? = nil,
         connectionTimeout: TimeInterval = 5,
-        readTimeout: TimeInterval = 15
+        readTimeout: TimeInterval = 15,
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        sessionHome: URL = BridgeSessionStore.homeDirectory
     ) {
         self.adb = adb
         self.serial = serial
+        self.connection = BridgeConnection(environment: environment)
+        self.sessionHome = sessionHome
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = readTimeout
         config.timeoutIntervalForResource = readTimeout
@@ -82,12 +98,27 @@ public final class BridgeClient: @unchecked Sendable {
 
         // Hydrate from disk cache so successive CLI invocations skip the
         // ~1s `adb shell content query` + ~50ms `adb forward` startup.
-        // We don't validate up-front — the first HTTP attempt will hit
-        // 401 / ECONNREFUSED if the cached values are stale, and we
-        // re-bootstrap then.
-        if let cached = BridgeSessionStore.read(udid: serial) {
-            self.cachedAuthToken = cached.token
-            self.cachedLocalPort = cached.localPort
+        // Only a session created under this same connection is a
+        // candidate: its port is a forward on *that* adb server, so
+        // replaying it against another one (or a cache that predates the
+        // field) could hand the token to whatever listens there. The port
+        // itself is still confirmed with `adb forward --list` before the
+        // first request (see `currentLocalPort`), because a listener that
+        // answers is not proof the forward is still ours; a stale token on
+        // a confirmed forward falls back to the 401 re-fetch. When only
+        // the bridge host changed, the old forward is on this same adb
+        // server: remove it best effort and drop the cache. A forward on
+        // a different adb server is left alone because this process cannot
+        // address that server.
+        if let cached = BridgeSessionStore.read(udid: serial, home: sessionHome) {
+            if cached.connection == connection.identity {
+                self.cachedAuthToken = cached.token
+                self.cachedLocalPort = cached.localPort
+                self.restoredPortUnconfirmed = true
+            } else if cached.adbServer == connection.adbServer {
+                _ = try? adb.forwardRemove(serial: serial, localPort: cached.localPort)
+                BridgeSessionStore.invalidate(udid: serial, home: sessionHome)
+            }
         }
     }
 
@@ -293,23 +324,42 @@ public final class BridgeClient: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
         if let port = cachedLocalPort {
-            _ = try? adb.forwardRemove(localPort: port)
+            _ = try? adb.forwardRemove(serial: serial, localPort: port)
         }
         cachedLocalPort = nil
         cachedAuthToken = nil
+        restoredPortUnconfirmed = false
         verifiedProtocolVersion = false
-        BridgeSessionStore.invalidate(udid: serial)
+        BridgeSessionStore.invalidate(udid: serial, home: sessionHome)
     }
 
     // MARK: - Internal
 
     private func currentLocalPort() throws -> Int {
         lock.lock()
-        if let port = cachedLocalPort {
-            lock.unlock()
-            return port
-        }
+        let cached = cachedLocalPort
+        let unconfirmed = restoredPortUnconfirmed
         lock.unlock()
+        if let port = cached {
+            guard unconfirmed else { return port }
+            // A failed `adb forward --list` throws rather than counting
+            // as "gone": the forward may well still be registered, and
+            // opening another one here would strand it on the adb server.
+            // The session stays cached for the next call to confirm.
+            if try restoredForwardIsLive(localPort: port) {
+                lock.lock(); restoredPortUnconfirmed = false; lock.unlock()
+                return port
+            }
+            // Confirmed not our forward any more (removed, adb server
+            // restarted, or the port now belongs to something else), so
+            // there is nothing of ours left to remove. Drop the token with
+            // it so it is only ever sent through a forward we created.
+            lock.lock()
+            cachedLocalPort = nil
+            cachedAuthToken = nil
+            restoredPortUnconfirmed = false
+            lock.unlock()
+        }
 
         let port = try adb.forward(serial: serial, remotePort: Self.defaultRemotePort)
         lock.lock()
@@ -317,6 +367,10 @@ public final class BridgeClient: @unchecked Sendable {
         lock.unlock()
         persistSession()
         return port
+    }
+
+    private func restoredForwardIsLive(localPort: Int) throws -> Bool {
+        try adb.forwards().contains(Adb.Forward(serial: serial, localPort: localPort, remote: "tcp:\(Self.defaultRemotePort)"))
     }
 
     private func currentAuthToken() throws -> String {
@@ -344,9 +398,11 @@ public final class BridgeClient: @unchecked Sendable {
         let session = BridgeSession(
             token: token,
             localPort: port,
-            remotePort: Self.defaultRemotePort
+            remotePort: Self.defaultRemotePort,
+            connection: connection.identity,
+            adbServer: connection.adbServer
         )
-        BridgeSessionStore.write(session, udid: serial)
+        BridgeSessionStore.write(session, udid: serial, home: sessionHome)
     }
 
     private func buildRequest(
@@ -357,7 +413,7 @@ public final class BridgeClient: @unchecked Sendable {
         contentType: String?
     ) throws -> URLRequest {
         let port = try currentLocalPort()
-        guard let url = URL(string: "http://127.0.0.1:\(port)\(path)") else {
+        guard let url = URL(string: "http://\(connection.bridgeHost):\(port)\(path)") else {
             throw BridgeError.transport(underlying: "Could not build URL for \(path)", serial: nil)
         }
         var req = URLRequest(url: url)
@@ -432,8 +488,12 @@ public final class BridgeClient: @unchecked Sendable {
             // reachable but nothing is answering on the bridge port. One
             // cheap probe disambiguates the dominant cause — a device that
             // was never `sim-use android init`-ed — from a genuine drop on
-            // an already-bootstrapped bridge.
-            throw connectionFailure(underlying: error)
+            // an already-bootstrapped bridge. Compute the error before
+            // dropping caches and removing the retry's forward, which
+            // would otherwise be stranded without a persisted session.
+            let failure = connectionFailure(underlying: error)
+            invalidate()
+            throw failure
         }
         guard let http = response as? HTTPURLResponse else {
             throw BridgeError.transport(underlying: "Non-HTTP response from bridge", serial: serial)

@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: Apache-2.0
 @testable import SimUse
 @testable import iOSSimBackend
+import AndroidBackend
 import ArgumentParser
 import Foundation
 import SimUseCore
 import Testing
 
 // ArgumentParser (1.5.0) does not auto-validate nested option groups —
-// each of the three tap surfaces must call the shared group validators
+// each tap surface must call the shared group validators
 // (`TapTargetingOptions.validate(alias:)` / `TapTimingOptions.validate()`
 // / `TapTimingOptions.validateDuration`) explicitly from its own
 // `validate()`. A surface that drops a call still parses fine and loses
 // validation silently; that is the regression this suite exists to
 // catch. The same invalid argv must fail — with the same message — on
-// `tap`, `long-press`, and `ios tap`.
+// `tap`, `long-press`, `ios tap`, and the Android long-press implementation.
 @Suite("Tap validation parity across surfaces")
 struct TapValidationParityTests {
     private static let udid = ["--udid", "9CD7C6E7-45B3-4E59-BBF2-4D12A9457CD0"]
@@ -40,6 +41,9 @@ struct TapValidationParityTests {
         (["@1", "--coordinate-space", "ui"], "--coordinate-space ui applies to explicit"),
     ]
 
+    /// Parse and validate targeting/timing only; deferred device resolution is
+    /// intentionally excluded. The iOS --udid tests flag syntax parity even
+    /// on Android, whose platform rejection happens during deferred resolution.
     /// nil when the argv parses; the rendered parser message otherwise.
     private func failureMessage<C: ParsableCommand>(_ type: C.Type, _ argv: [String]) -> String? {
         do {
@@ -56,6 +60,8 @@ struct TapValidationParityTests {
             let full = argv + Self.udid
             let tap = failureMessage(Tap.self, full)
             let longPress = failureMessage(LongPress.self, full)
+            let androidLongPress = failureMessage(AndroidLongPressCommand.self, full)
+            #expect(tap == androidLongPress)
             let iosTap = failureMessage(IOSSimTapCommand.self, full)
 
             #expect(tap != nil, "tap accepted invalid argv \(argv)")
@@ -72,7 +78,7 @@ struct TapValidationParityTests {
     @Test("a kitchen-sink valid argv parses on every surface")
     func acceptedParityAcrossSurfaces() {
         // One selector + type filter + frame + full timing block —
-        // valid on all three surfaces (mirrors flagSurfaceParses, which
+        // valid on all surfaces (mirrors flagSurfaceParses, which
         // pins field values; this pins acceptance stays in sync with
         // the rejection table above).
         let argv = [
@@ -86,6 +92,7 @@ struct TapValidationParityTests {
         ] + Self.udid
         #expect(failureMessage(Tap.self, argv) == nil)
         #expect(failureMessage(LongPress.self, argv) == nil)
+        #expect(failureMessage(AndroidLongPressCommand.self, argv) == nil)
         #expect(failureMessage(IOSSimTapCommand.self, argv) == nil)
     }
 }

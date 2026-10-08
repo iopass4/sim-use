@@ -16,7 +16,7 @@ import iOSSimBackend
 struct AppState: SimUseExecutableCommand {
     static let configuration = CommandConfiguration(
         commandName: "app-state",
-        abstract: "Report which apps are running on the device; --reset re-baselines crash detection."
+        abstract: AppStateHelp.abstract
     )
 
     @OptionGroup var device: DeviceOptions
@@ -24,7 +24,7 @@ struct AppState: SimUseExecutableCommand {
     @Option(
         name: .customLong("bundle-id"),
         help: ArgumentHelp(
-            "Report running|not_running for this bundle id / package only.",
+            AppStateHelp.bundleId,
             valueName: "id"
         )
     )
@@ -32,7 +32,7 @@ struct AppState: SimUseExecutableCommand {
 
     @Flag(
         name: .customLong("reset"),
-        help: "Re-baseline crash detection to the current process set and clear any pending crash signal. Use after intentionally relaunching the app, attaching to an already-running app, or accepting a crash."
+        help: ArgumentHelp(AppStateHelp.reset)
     )
     var reset: Bool = false
 
@@ -50,32 +50,17 @@ struct AppState: SimUseExecutableCommand {
 
     // MARK: - Result
 
-    struct AppProcess: Codable, Equatable {
-        let bundleId: String
-        let pid: Int
-    }
-
-    struct AppStateQuery: Codable, Equatable {
-        let bundleId: String
-        /// "running" | "not_running". Liveness only — the
-        /// foreground-vs-background distinction needs foreground info the
-        /// lightweight probe does not carry and is left to describe-ui.
-        let state: String
-    }
-
-    struct ExecutionResult: Codable {
-        let platform: String
-        let apps: [AppProcess]
-        let query: AppStateQuery?
-        let didReset: Bool
-    }
+    typealias AppProcess = AppStateReport.AppProcess
+    typealias AppStateQuery = AppStateReport.AppStateQuery
+    typealias ExecutionResult = AppStateReport.ExecutionResult
 
     func execute() async throws -> ExecutionResult {
         let udid = device.resolved
-        let isAndroid: Bool
         switch PlatformRouter.resolve(udid: udid) {
         case .android:
-            isAndroid = true
+            return try AndroidAppStateCommand.performAppState(
+                serial: udid, bundleId: bundleId, reset: reset
+            )
         case .iOSDevice:
             throw TargetCapabilityError.physicalIOS(
                 verb: "app-state",
@@ -83,11 +68,9 @@ struct AppState: SimUseExecutableCommand {
                 alternative: "Read the foreground app with `sim-use ui` instead; its outline header and content reflect what is currently on screen."
             )
         case .iOSSim, .none:
-            isAndroid = false
+            break
         }
-        let probed = isAndroid
-            ? AndroidProcessLister.appSnapshot(serial: udid)
-            : BundleIdentifierResolver.appSnapshot(udid: udid)
+        let probed = BundleIdentifierResolver.appSnapshot(udid: udid)
 
         // A nil probe means the process list could not be read (device
         // busy, mid-boot, or disconnected). Surface that as an error
@@ -106,7 +89,7 @@ struct AppState: SimUseExecutableCommand {
         }
 
         return Self.buildResult(
-            platform: isAndroid ? "android" : "ios",
+            platform: "ios",
             snapshot: snapshot,
             bundleId: bundleId,
             didReset: reset
@@ -120,36 +103,12 @@ struct AppState: SimUseExecutableCommand {
         bundleId: String?,
         didReset: Bool
     ) -> ExecutionResult {
-        let apps = snapshot.appsByPid
-            .map { AppProcess(bundleId: $0.value, pid: $0.key) }
-            .sorted { $0.bundleId < $1.bundleId }
-        let query: AppStateQuery? = bundleId.map { id in
-            let state: String
-            switch snapshot.liveness(ofBundleId: id) {
-            case .alive: state = "running"
-            case .dead: state = "not_running"
-            }
-            return AppStateQuery(bundleId: id, state: state)
-        }
-        return ExecutionResult(platform: platform, apps: apps, query: query, didReset: didReset)
+        AppStateReport.buildResult(
+            platform: platform, snapshot: snapshot, bundleId: bundleId, didReset: didReset
+        )
     }
 
     func format(_ result: ExecutionResult) -> CommandOutput {
-        var lines: [String] = []
-        if let query = result.query {
-            lines.append("\(query.bundleId): \(query.state)")
-        }
-        if result.apps.isEmpty {
-            lines.append("No tracked app processes running.")
-        } else {
-            lines.append("Running apps (\(result.apps.count)):")
-            for app in result.apps {
-                lines.append("  \(app.bundleId)  pid=\(app.pid)")
-            }
-        }
-        if result.didReset {
-            lines.append("Crash-detection baseline reset.")
-        }
-        return .lines(lines)
+        AppStateReport.format(result)
     }
 }

@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
+#if canImport(Darwin)
 import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#endif
 import Foundation
 
 /// Client-side transport for the per-UDID daemon. Encapsulates:
@@ -36,19 +40,32 @@ public enum DaemonClient {
         let paths = DaemonPaths(udid: udid, baseDirectory: baseDirectory)
         try paths.ensureBaseDirectory()
 
+        // Read once: the gate below and every request this call sends
+        // must agree on the connection, so the daemon can refuse a
+        // request the gate could not vet (see `connectionMismatchOutcome`).
+        let identity = connectionIdentity(for: udid)
+
         var liveness = paths.filesystemLiveness()
         trace("invoke cmd=\(command) liveness=\(liveness)")
 
         // Version gate: if a daemon is live but was spawned from a
         // different binary (git checkout + rebuild mid-session, stale
-        // dev iteration, etc.), restart it now so the client never
-        // dispatches real work to a server that no longer reflects
-        // the CLI's code. Returns early when the daemon is either
+        // dev iteration, etc.), or under a different connection (e.g. an
+        // Android daemon started against another adb server), restart it
+        // now so the client never dispatches real work to a server that
+        // no longer reflects the CLI's code or configuration. Returns early when the daemon is either
         // absent, already compatible, or the probe itself was
         // inconclusive — in all those cases the existing fast/slow
-        // paths handle the rest.
+        // paths handle the rest. An inconclusive probe (e.g. a `_ping`
+        // timed out behind another client's long command) does not vet
+        // the connection; the daemon then refuses the request itself
+        // when its `connectionIdentity` differs.
         if case .probablyAlive = liveness,
-           await ensureCompatibleDaemon(paths: paths, currentVersion: VERSION) {
+           await ensureCompatibleDaemon(
+               paths: paths,
+               currentVersion: VERSION,
+               currentConnectionIdentity: identity
+           ) {
             liveness = paths.filesystemLiveness()
             trace("post-gate liveness=\(liveness)")
         }
@@ -59,6 +76,7 @@ public enum DaemonClient {
                 return try await sendClassifiedRequest(
                     command: command,
                     args: args,
+                    connectionIdentity: identity,
                     paths: paths,
                     transientRetryDelay: transientRetryDelay
                 )
@@ -94,6 +112,7 @@ public enum DaemonClient {
             return try await sendClassifiedRequest(
                 command: command,
                 args: args,
+                connectionIdentity: identity,
                 paths: paths,
                 transientRetryDelay: transientRetryDelay
             )
@@ -186,11 +205,13 @@ public enum DaemonClient {
     private static func sendClassifiedRequest(
         command: String,
         args: [String],
+        connectionIdentity: String?,
         paths: DaemonPaths,
         transientRetryDelay: TimeInterval
     ) async throws -> Data {
+        let request = DaemonRequest(cmd: command, args: args, connectionIdentity: connectionIdentity)
         do {
-            let response = try sendRequest(command: command, args: args, to: paths.socketURL.path)
+            let response = try sendRequest(request, to: paths.socketURL.path)
             trace("sendRequest OK \(response.count) bytes, classifying")
             return try classify(response: response)
         } catch let error as DaemonClientError {
@@ -205,7 +226,7 @@ public enum DaemonClient {
                 try await Task.sleep(nanoseconds: UInt64(cappedSeconds * 1_000_000_000))
             }
             try Task.checkCancellation()
-            let response = try sendRequest(command: command, args: args, to: paths.socketURL.path)
+            let response = try sendRequest(request, to: paths.socketURL.path)
             trace("retry sendRequest OK \(response.count) bytes, classifying")
             return try classify(response: response)
         }
@@ -222,17 +243,27 @@ public enum DaemonClient {
     /// hard enough that the existing transport-error handling should
     /// take over.
     ///
+    /// The same probe compares the daemon's connection identity with
+    /// `currentConnectionIdentity` (see `connectionIdentityProvider`): a
+    /// daemon started under another connection is restarted too.
+    ///
     /// Opt-out: `SIM_USE_DAEMON_VERSION_CHECK=0` in the environment
-    /// disables the gate entirely, falling back to pre-gate behaviour
-    /// for emergency use.
+    /// disables the version comparison, falling back to pre-gate
+    /// behaviour for emergency use. It does not disable the connection
+    /// comparison, which guards against sending commands to the wrong
+    /// device server.
     public static func ensureCompatibleDaemon(
         paths: DaemonPaths,
-        currentVersion: String
+        currentVersion: String,
+        currentConnectionIdentity: String? = nil,
+        environment: [String: String] = ProcessInfo.processInfo.environment
     ) async -> Bool {
-        if ProcessInfo.processInfo.environment["SIM_USE_DAEMON_VERSION_CHECK"] == "0" {
+        let checkVersion = environment["SIM_USE_DAEMON_VERSION_CHECK"] != "0"
+        guard checkVersion || currentConnectionIdentity != nil else {
             return false
         }
         let daemonVersion: String
+        let daemonConnectionIdentity: String?
         do {
             let responseData = try sendToExistingDaemon(
                 socketPath: paths.socketURL.path,
@@ -243,18 +274,45 @@ public enum DaemonClient {
                 .decode(DaemonClientSuccessPayload<DaemonPingData>.self, from: responseData)
                 .data
             daemonVersion = ping.simUseVersion
+            daemonConnectionIdentity = ping.connectionIdentity
         } catch {
             trace("version probe failed: \(error); letting fast-path take over")
             return false
         }
 
-        guard shouldRestartForVersion(daemon: daemonVersion, current: currentVersion) else {
+        if checkVersion, shouldRestartForVersion(daemon: daemonVersion, current: currentVersion) {
+            trace("version mismatch daemon=\(daemonVersion) cli=\(currentVersion); restarting")
+        } else if shouldRestartForConnection(daemon: daemonConnectionIdentity, current: currentConnectionIdentity) {
+            // Deliberately not tracing the identities: they can carry
+            // host addresses, and trace output ends up in shared logs.
+            trace("connection identity differs from the daemon's; restarting")
+        } else {
             return false
         }
-
-        trace("version mismatch daemon=\(daemonVersion) cli=\(currentVersion); restarting")
         await stopDaemon(paths: paths, timeout: 2.0)
         return true
+    }
+
+    /// Decides whether a live daemon's connection identity disqualifies it
+    /// for a client whose own identity is `current`. A nil `current` means
+    /// the target has no connection-dependent state (never restarts); a
+    /// daemon reporting nil predates the field and cannot prove a match.
+    public static func shouldRestartForConnection(daemon: String?, current: String?) -> Bool {
+        guard let current else { return false }
+        return daemon != current
+    }
+
+    /// What a per-device daemon depends on beyond its UDID — for Android,
+    /// the adb server and bridge host its environment selects. Installed
+    /// by each executable's entry point (backends live above SimUseCore);
+    /// nil means the target has no such dependency. Read on both sides:
+    /// the daemon reports its value in `_ping`, the client compares.
+    nonisolated(unsafe) public static var connectionIdentityProvider: ((_ udid: String) -> String?)?
+
+    /// The identity `connectionIdentityProvider` gives `udid`, or nil when
+    /// no provider is installed.
+    public static func connectionIdentity(for udid: String) -> String? {
+        connectionIdentityProvider?(udid)
     }
 
     /// Pure comparator: decides whether an extant daemon should be
@@ -323,8 +381,7 @@ public enum DaemonClient {
     ) throws -> Data {
         signal(SIGPIPE, SIG_IGN)
         let response = try sendRequest(
-            command: command,
-            args: args,
+            DaemonRequest(cmd: command, args: args),
             to: socketPath,
             readTimeout: readTimeout
         )
@@ -339,8 +396,7 @@ public enum DaemonClient {
     // MARK: - Wire
 
     private static func sendRequest(
-        command: String,
-        args: [String],
+        _ request: DaemonRequest,
         to socketPath: String,
         readTimeout: TimeInterval? = nil
     ) throws -> Data {
@@ -349,7 +405,7 @@ public enum DaemonClient {
 
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-        var requestData = try encoder.encode(DaemonRequest(cmd: command, args: args))
+        var requestData = try encoder.encode(request)
         requestData.append(0x0A)
 
         let writeResult = DaemonSocket.writeAll(fd: fd, data: requestData)

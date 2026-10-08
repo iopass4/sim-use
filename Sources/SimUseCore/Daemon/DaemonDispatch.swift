@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 import ArgumentParser
+#if canImport(Darwin)
 import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#endif
 import Foundation
 
 /// Routes a `DaemonRequest` to the right handler and returns the
@@ -25,8 +29,9 @@ public enum DaemonDispatch {
     /// client establishes a fresh `adb forward` on every request
     /// already. The shutdown side of `staleSimulatorOutcome` is the
     /// part Android cares about (clears the zombie daemon so the next
-    /// call re-spawns clean). Set this once during daemon boot in
-    /// `Daemon.Start.run()` before the server starts accepting requests.
+    /// call re-spawns clean). Set this once during daemon boot, from the host
+    /// executable's `Daemon.installPlatformHooks`, before the server starts
+    /// accepting requests.
     public static var platformStaleCleanup: ((String) -> Void)?
 
     public struct Snapshot {
@@ -34,12 +39,14 @@ public enum DaemonDispatch {
         public let startTime: Date
         public let udid: String
         public let simUseVersion: String
+        public let connectionIdentity: String?
 
-        public init(pid: pid_t, startTime: Date, udid: String, simUseVersion: String) {
+        public init(pid: pid_t, startTime: Date, udid: String, simUseVersion: String, connectionIdentity: String? = nil) {
             self.pid = pid
             self.startTime = startTime
             self.udid = udid
             self.simUseVersion = simUseVersion
+            self.connectionIdentity = connectionIdentity
         }
     }
 
@@ -135,6 +142,10 @@ public enum DaemonDispatch {
             return handleManagement(management, request: request, snapshot: snapshot)
         }
 
+        if let mismatch = connectionMismatchOutcome(request, snapshot: snapshot) {
+            return mismatch
+        }
+
         guard let parser = commandParser else {
             return errorOutcome(
                 id: request.id,
@@ -182,6 +193,35 @@ public enum DaemonDispatch {
                 hint: (error as? HintProviding)?.hint
             )
         }
+    }
+
+    /// Refuse a business request whose connection identity differs from
+    /// the one this daemon started under, before it is parsed or run.
+    /// The client's `_ping` gate restarts such a daemon, but it cannot
+    /// confirm the identity when the ping times out behind another
+    /// client's slow request (the daemon serves one connection at a
+    /// time). Checking the identity on the request itself closes that
+    /// gap and the window between the ping and the request.
+    ///
+    /// The comparison is exact: a request without an identity only runs
+    /// in a daemon without one (iOS targets, no provider installed).
+    /// The identities are not echoed: they can carry host addresses.
+    public static func connectionMismatchOutcome(_ request: DaemonRequest, snapshot: Snapshot) -> Outcome? {
+        guard request.connectionIdentity != snapshot.connectionIdentity else { return nil }
+        return errorOutcome(
+            id: request.id,
+            error: """
+                sim-use daemon: the daemon for \(snapshot.udid) was started for a different \
+                device connection (adb server or bridge host), so '\(request.cmd)' was not run.
+                """,
+            kind: .permanent,
+            hint: """
+                A command from the other connection is probably still running in that daemon. \
+                Retry after it finishes; sim-use then restarts the daemon for this connection. \
+                `sim-use daemon stop --udid \(snapshot.udid)` stops the daemon immediately, \
+                including any command it is running.
+                """
+        )
     }
 
     /// Build the response for a stale-simulator detection (LINEIOS-216942):
@@ -254,7 +294,8 @@ public enum DaemonDispatch {
                 uptimeSeconds: Date().timeIntervalSince(snapshot.startTime),
                 protocolVersion: DaemonProtocol.version,
                 simUseVersion: snapshot.simUseVersion,
-                udid: snapshot.udid
+                udid: snapshot.udid,
+                connectionIdentity: snapshot.connectionIdentity
             )
             let envelope = DaemonSuccessResponse(id: request.id, data: ping)
             return Outcome(responseData: encode(envelope), shouldStopDaemon: false)

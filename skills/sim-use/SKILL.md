@@ -19,7 +19,7 @@ This verifies sim-use is installed and compatible with the skill, the device is 
 
 A `WARN  UI content` line still passes preflight: the read works, but the outline can miss app controls. See the *Pitfalls* index.
 
-`--device` is optional when only one simulator is booted or one daemon is running. For Android, run `sim-use android init --device <serial>` once to install the bridge APK. Attached physical iPhones/iPads appear in `sim-use devices` with kind `physical` and route through the top-level verbs too — but only `ui`, selector-based `tap` and `screenshot`; every other verb rejects on that target. See *Physical iOS devices* below before driving one.
+`--device` is optional when only one simulator is booted or one daemon is running. For Android, run `sim-use android init --device <serial>` once to install the bridge APK. Attached physical iPhones/iPads appear in `sim-use devices` with kind `physical` and route through the top-level verbs too — but only `ui`, selector-based `tap` and `screenshot`; every other verb rejects on that target. See *Physical iOS devices* below before driving one. A Linux build of sim-use drives Android only: `sim-use ios …`, `record-video` / `stream-video`, `viewer` and `init` are absent there, every verb needs `--device <serial>`, and `sim-use devices` lists Android devices only.
 
 ## 1. The observe-act loop
 
