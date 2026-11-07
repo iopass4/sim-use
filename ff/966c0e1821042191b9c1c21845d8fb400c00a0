@@ -1,0 +1,98 @@
+bridge/app/src/test/java/com/linecorp/simuse/devicebridge/SimuseContentProviderTest.kt
+  s_6369ae28fd666a::t_173f839e8fe636 5-14,53-74
+README.md
+  s_f6e862a0fa746c::t_0e01f2534bdfb9 214
+bridge/app/src/main/java/com/linecorp/simuse/devicebridge/service/SimuseAccessibilityService.kt
+  s_f6e862a0fa746c::t_b03c4ffadd1f09 69,78-87,90,92,103-115
+  s_6369ae28fd666a::t_f53fc1e587cc44 116-121
+bridge/app/src/test/java/com/linecorp/simuse/devicebridge/EndpointSnapshotTest.kt
+  s_6369ae28fd666a::t_a18267eb4c9a4a 1-101
+CHANGELOG.md
+  s_f6e862a0fa746c::t_18f87ba92a3940 10,14
+bridge/app/src/test/java/com/linecorp/simuse/devicebridge/HttpServerPortTest.kt
+  s_f6e862a0fa746c::t_3f0f48aa1d8fec 1-39
+Sources/AndroidBackend/Verbs/AndroidDeviceController.swift
+  s_6369ae28fd666a::t_6f81b57fca03fe 179-181
+  s_f6e862a0fa746c::t_5324d5862f19ac 182-183,194
+Tests/AndroidBackendTests/BridgeConnectionScopingTests.swift
+  s_f6e862a0fa746c::t_e900d50bdc442d 29-30,296-404,406-514,516-517,530,534,542,545-548,550-551,555,557,559,565,569-572,582-583,587,617-619,627,631,703,708,713,718,723,728,733,738,743
+  s_96abe8cfdbcd94::t_dd321755d1801f 147
+  s_96abe8cfdbcd94::t_6dd17d085118b0 293-295,686-687,749,770-774,777
+  s_6369ae28fd666a::t_89a14fe46c3880 115,531,553,556,629-630,705-707,710-712,714-717,719-722,724-727,748
+  s_6369ae28fd666a::t_5a8344195137c1 688-702
+  s_29a25344a59371::t_6c11c7f99d5ca2 613-615
+  s_29a25344a59371::t_882f4f44b69a32 87-88,95,97,527,536,560,564,589,605,626,704,744,781-788,790-791
+  s_6369ae28fd666a::t_458fd0aa778048 515,518-526,528-529,532-533,535,537-541,543-544,549,552,554,558,561-563,566-568,573-581,584-586,588,709,729-732,735-737,739-742,795
+Sources/AndroidBackend/Bridge/BridgeClient.swift
+  s_96abe8cfdbcd94::t_be8bcca3d251f1 101,111-113
+  s_29a25344a59371::t_676ba86d951752 331
+  s_96abe8cfdbcd94::t_82a6b556fd6454 565,567
+  s_6369ae28fd666a::t_cecbd45d6ffa3a 102,133,364,377,477-497,511-512,518-519,526-527,534-535,542,548-551,553,556-564,610-613
+  s_49b7ec41a998cd::t_c06960a5942eea 348-357,365
+  s_f6e862a0fa746c::t_afb8f40ac5de2a 33,105,114,123,135-148,150-155,165-167,340-346,378,389,410-411,414,424,430,443,453,579,583
+  s_29a25344a59371::t_5ef21f131301c6 100,338-339,358-362,366-373,393,458
+  s_6369ae28fd666a::t_d0fa8ab5fb51a7 16-17,25,66-68,109-110,122,124-127,194,199-200,202-205,207,211-215,266,312,327,336,347,374-376,391,394-396,437-442,444,451-452,454-456,459,462,464,466,470,580-582,584,641,651,659,665
+  s_6369ae28fd666a::t_6b845f18e00489 134,379-387,578
+Tests/AndroidBackendTests/AuthTokenFetcherTests.swift
+  s_6369ae28fd666a::t_7e8ba599b384f7 2,50-65,68-112,118-121,123-124,128-129,133,136-137,141-142
+  s_f6e862a0fa746c::t_ef60816da269eb 23,25-43,48-49,66-67,113-114,145
+  s_6369ae28fd666a::t_8668c749e61a02 44-47,147
+  s_6369ae28fd666a::t_c38c0fc840a5c6 24,115-117,122,125-127,130-132,134-135,138-140,143-144
+Sources/AndroidBackend/Adb/AuthTokenFetcher.swift
+  s_f6e862a0fa746c::t_81982c9aec18fa 25-64,66-103,150,152
+Sources/AndroidBackend/Bridge/BridgeEnvelope.swift
+  s_6369ae28fd666a::t_80a94ccb337ebb 192-193
+bridge/app/src/main/java/com/linecorp/simuse/devicebridge/service/SimuseContentProvider.kt
+  s_f6e862a0fa746c::t_0d98bad9019c32 25-26,53-57
+bridge/app/src/main/java/com/linecorp/simuse/devicebridge/server/HttpServer.kt
+  s_f6e862a0fa746c::t_19e479de30caff 49-54,74-75,298-319
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "ff966c0e1821042191b9c1c21845d8fb400c00a0",
+  "prompts": {},
+  "logical_commit_id": "56e7da0f5ee372d89b30d1c7eed8722c00f30d91",
+  "sessions": {
+    "s_29a25344a59371": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb9d2c6b-bcce-4760-b6af-c8a3b35bf529",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    },
+    "s_49b7ec41a998cd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "65b8442b-a2d6-43c9-a00b-d77539685cce",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    },
+    "s_6369ae28fd666a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b6b3-8297-7430-bbb7-f2973e7b8501",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    },
+    "s_96abe8cfdbcd94": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97b81e55-de42-46fc-b79c-d9e7bc0e7c57",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    },
+    "s_f6e862a0fa746c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ae93-9d5f-7050-b80e-b4017202260e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Yang <2832943+iopass4@users.noreply.github.com>"
+    }
+  }
+}
